@@ -24,6 +24,8 @@ import dev.profilebridge.app.platform.IncomingLinkReader
 import dev.profilebridge.app.platform.LocalHandler
 import dev.profilebridge.app.platform.LocalLinkLauncher
 import dev.profilebridge.app.platform.ProfileDiagnostics
+import dev.profilebridge.app.platform.ProfileAccess
+import dev.profilebridge.app.platform.ProfileSendResult
 import dev.profilebridge.app.ui.BridgeScreen
 import dev.profilebridge.app.ui.ProbeViewModel
 import dev.profilebridge.core.links.LinkParseResult
@@ -37,6 +39,7 @@ class MainActivity : ComponentActivity() {
     private val probe: ProbeViewModel by viewModels()
     private var targets by mutableStateOf<List<UserHandle>>(emptyList())
     private var message by mutableStateOf<Int?>(null)
+    private var profileAccess by mutableStateOf(ProfileAccess.UNKNOWN)
     private var url by mutableStateOf("")
     private var linkError by mutableStateOf<Int?>(null)
     private var handlers by mutableStateOf<List<LocalHandler>>(emptyList())
@@ -59,6 +62,12 @@ class MainActivity : ComponentActivity() {
                 openHandler = ::openHandler,
                 shareReport = ::shareReport,
                 copyCode = ::copyCode, pasteCode = ::pasteCode,
+                profileAccess = profileAccess,
+                requestProfileAccess = {
+                    message = if (ProfileDiagnostics.requestAccess(this)) R.string.profile_settings_opened
+                        else R.string.profile_settings_unavailable
+                },
+                sendToCopy = ::sendToCopy,
             )
         }
     }
@@ -105,9 +114,31 @@ class MainActivity : ComponentActivity() {
     private fun receive(incoming: Intent) {
         val value = IncomingLinkReader.read(this, incoming)
         setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
-        if (value != null) edit(value)
+        if (value != null) {
+            edit("")
+            if (SafeLink.parse(value) is LinkParseResult.Accepted) {
+                edit(value)
+                message = R.string.link_received
+            } else linkError = R.string.invalid_url
+        }
     }
-    private fun refresh() { targets = ProfileDiagnostics.targets(this) }
+    private fun refresh() {
+        targets = ProfileDiagnostics.targets(this)
+        profileAccess = ProfileDiagnostics.access(this)
+    }
+    private fun sendToCopy(target: UserHandle) {
+        val result = ProfileDiagnostics.send(this, target, url)
+        message = when (result) {
+            ProfileSendResult.SUBMITTED_UNKNOWN_OUTCOME -> R.string.profile_submitted
+            ProfileSendResult.INVALID_LINK -> R.string.invalid_url
+            ProfileSendResult.NO_TARGET -> R.string.profile_target_unavailable
+            ProfileSendResult.ACCESS_DENIED -> R.string.profile_access_denied
+            ProfileSendResult.UNAVAILABLE -> R.string.open_failed
+            ProfileSendResult.UNKNOWN_OUTCOME -> R.string.profile_unknown_outcome
+        }
+        if (result == ProfileSendResult.SUBMITTED_UNKNOWN_OUTCOME || result == ProfileSendResult.UNKNOWN_OUTCOME) edit("")
+        refresh()
+    }
     private fun edit(value: String) {
         queryJob?.cancel()
         link = null; handlers = emptyList(); linkError = null

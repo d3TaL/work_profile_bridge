@@ -1,5 +1,39 @@
 # Проверки восстановленной версии
 
+## 0.1.6 — передача ссылки CrossProfileApps
+
+Владелец подтвердил работающую кнопку открытия копии и обратное ручное share
+из браузера Knox в основное пространство. Для открытия копии точный target
+не зафиксирован автоматизацией, не выдавать за подтверждение Secure Folder.
+Повторная ADB проверка 0.1.5: INTERACT_ACROSS_PROFILES denied в users 0/10,
+app-op default. Это исходное состояние до добавления permission в manifest.
+
+0.1.6 добавляет новый явный ACTION_SEND text/plain в MainActivity своего
+пакета через CrossProfileApps.startActivity(Intent, UserHandle, Activity).
+Проверка canInteractAcrossProfiles и membership target выполняется перед
+каждой операцией; настройки открываются отдельно по явному действию через
+createRequestInteractAcrossProfilesIntent. canRequest не означает DPC allowlist
+или гарантированную выдачу доступа. Без разрешения наблюдаемый ACCESS_DENIED,
+без ADB grants или изменения политик Shelter/Knox.
+
+IncomingLinkReader/IntentSanitizer общий для onCreate/onNewIntent; полученный
+bounded text независимо проходит SafeLink.parse до показа. Автозапуска нет.
+На отправке новый Intent содержит только component, type и EXTRA_TEXT;
+исходные флаги/ClipData/URI grants не пересылаются. Успех framework вызова
+не является ACK; результат помечен UNKNOWN_OUTCOME, retries отсутствуют.
+Тестировать только публичные синтетические HTTPS адреса, не банковские токены.
+
+На дату подготовки изменения физическая доставка именно через API не
+подтверждена. Для Shelter требуется DPC/OEM allowlist; смена DPC/его политик
+не выполняется. Secure Folder не обещается: нужны targetUserProfiles и доступ.
+
+Прочитан android-permissions-security, Google android/skills commit
+5bda39f154fb859a08d45e2392f3568e049f83fb (last-updated 2026-09-25),
+применён к динамической проверке прав и обработке SecurityException.
+android-intent-security того же commit прочитан ранее в этой сессии и
+применён к новому explicit Intent без пересылки исходного и общему приёмнику.
+См. SECURITY_ALIGNMENT.md, фактические проверки сборки фиксируются после CI.
+
 ## Подтверждённый ручной переход в браузер Secure Folder
 
 После пользовательского выбора Secure Folder для публичного `https://ozon.ru/`

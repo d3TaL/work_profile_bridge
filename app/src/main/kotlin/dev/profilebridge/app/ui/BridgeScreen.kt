@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.profilebridge.app.R
 import dev.profilebridge.app.platform.LocalHandler
+import dev.profilebridge.app.platform.ProfileAccess
 
 @Composable
 fun BridgeScreen(
@@ -36,6 +37,7 @@ fun BridgeScreen(
     openCopy: (UserHandle) -> Unit, openHandler: (LocalHandler) -> Unit,
     shareReport: (String) -> Unit,
     copyCode: (String) -> Unit, pasteCode: () -> Unit,
+    profileAccess: ProfileAccess, requestProfileAccess: () -> Unit, sendToCopy: (UserHandle) -> Unit,
 ) {
     val state by probe.state.collectAsStateWithLifecycle()
     MaterialTheme {
@@ -55,7 +57,17 @@ fun BridgeScreen(
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(stringResource(R.string.profiles, targets.size))
-                        Text(stringResource(R.string.profile_note))
+                         Text(stringResource(R.string.profile_note))
+                         Text(stringResource(when (profileAccess) {
+                             ProfileAccess.GRANTED -> R.string.profile_access_granted
+                             ProfileAccess.REQUESTABLE -> R.string.profile_access_requestable
+                             ProfileAccess.NOT_AVAILABLE -> R.string.profile_settings_unavailable
+                             ProfileAccess.UNKNOWN -> R.string.profile_access_unknown
+                         }))
+                         OutlinedButton(onClick = requestProfileAccess,
+                             enabled = profileAccess == ProfileAccess.REQUESTABLE) {
+                             Text(stringResource(R.string.profile_request_access))
+                         }
                         OutlinedButton(onClick = refresh) { Text(stringResource(R.string.refresh)) }
                         targets.forEachIndexed { index, handle ->
                             Button(onClick = { openCopy(handle) }) { Text(stringResource(R.string.open_copy, index + 1)) }
@@ -108,7 +120,13 @@ fun BridgeScreen(
                             label = { Text(stringResource(R.string.url)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false))
                         Button(onClick = inspect, enabled = url.isNotBlank()) { Text(stringResource(R.string.inspect)) }
-                        OutlinedButton(onClick = clear) { Text(stringResource(R.string.clear)) }
+                         OutlinedButton(onClick = clear) { Text(stringResource(R.string.clear)) }
+                         Text(stringResource(R.string.profile_send_note))
+                         targets.forEachIndexed { index, target ->
+                             OutlinedButton(onClick = { sendToCopy(target) }, enabled = url.isNotBlank()) {
+                                 Text(stringResource(R.string.profile_send, index + 1))
+                             }
+                         }
                         linkError?.let { Text(stringResource(it)) }
                         handlers.forEach { handler ->
                             OutlinedButton(onClick = { openHandler(handler) }) { Text(stringResource(R.string.handler, handler.packageName)) }

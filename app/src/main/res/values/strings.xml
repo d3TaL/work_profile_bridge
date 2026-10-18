@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
     <string name="title">Profile Bridge · TLS диагностика</string>
-    <string name="intro">Диагностика 0.1.5. Коды TLS-сессий можно копировать и вставлять кнопками или через выделение текста. Передача URL между профилями пока не включена.</string>
+    <string name="intro">Версия 0.1.6. Экспериментальная передача HTTPS-ссылки другой копии через CrossProfileApps. Требуется разрешение Android, политика администратора и подтверждение пользователя.</string>
     <string name="self_check">Проверить TLS внутри этого профиля</string>
     <string name="self_check_note">Локальная самопроверка использует AndroidKeyStore и правильный pin. Её успех не подтверждает связь между профилями.</string>
     <string name="remaining">Осталось: %1$d с</string>
@@ -11,7 +11,20 @@
     <string name="not_permitted">Доступ запрещён. Точный источник запрета не установлен.</string>
     <string name="device">Android %1$s · API %2$d · target %3$d</string>
     <string name="profiles">Копии через CrossProfileApps: %1$d</string>
-    <string name="profile_note">Secure Folder может не отображаться. Этот тест открывает только копию моста без ссылки.</string>
+    <string name="profile_note">Secure Folder может не отображаться. «Открыть копию» переключает приложение без ссылки. Передача ссылки — отдельная кнопка ниже.</string>
+    <string name="profile_access_granted">Android разрешает межпрофильное взаимодействие.</string>
+    <string name="profile_access_requestable">Можно открыть настройки доступа. Выдача зависит от списка разрешённых приложений DPC/OEM.</string>
+    <string name="profile_access_unknown">Состояние межпрофильного доступа не установлено.</string>
+    <string name="profile_request_access">Настроить межпрофильный доступ</string>
+    <string name="profile_settings_opened">Открыты настройки доступа. После возврата нажмите передачу ещё раз; автоматической отправки нет.</string>
+    <string name="profile_settings_unavailable">Запрос доступа сейчас недоступен. Для прямой передачи администратор/OEM должен разрешить приложение; запуск копии без ссылки может работать отдельно.</string>
+    <string name="profile_access_denied">Передача ссылки не разрешена. Запуск копии без ссылки не даёт права передачи. Нужны разрешение Android, allowlist администратора/OEM и согласие пользователя.</string>
+    <string name="profile_target_unavailable">Выбранная копия сейчас недоступна через CrossProfileApps.</string>
+    <string name="profile_send">Передать ссылку в копию %1$d</string>
+    <string name="profile_send_note">Только публичная тестовая ссылка. Получатель проверяет адрес и ждёт ручного выбора локального приложения. Успех вызова Android не подтверждает получение; автоматических повторов нет.</string>
+    <string name="profile_submitted">Запрос передан Android. Получение не подтверждено: проверьте поле ссылки в другой копии. Не повторяйте отправку автоматически.</string>
+    <string name="profile_unknown_outcome">Результат передачи неизвестен. Проверьте другую копию перед ручным повтором.</string>
+    <string name="link_received">HTTPS-ссылка получена и проверена. Выберите локальный обработчик вручную. Отправитель этим не аутентифицирован.</string>
     <string name="refresh">Обновить профили</string>
     <string name="open_copy">Открыть копию %1$d</string>
     <string name="open_ok">Запрос открытия передан Android.</string>
