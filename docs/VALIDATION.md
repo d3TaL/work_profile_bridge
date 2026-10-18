@@ -1,5 +1,35 @@
 # Проверки восстановленной версии
 
+## Отчёты устройства 0.1.4 и выпуск 0.1.5 clipboard
+
+Владелец предоставил `Out.txt` (внешняя копия) и `Profile.txt` (внутренняя),
+оба Version 0.1.4-keystore-tls. Локальные SELF_CHECK в обеих копиях содержат
+PEER_VALIDATE SUCCESS, TLS_HANDSHAKE SUCCESS, TLS_1_3, PROBE_READ/WRITE SUCCESS,
+COMPLETE SUCCESS. Серверная сторона self-check также COMPLETE SUCCESS.
+Это физическое подтверждение локального pinned TLS ping/ACK в данных копиях,
+после добавления DIGEST_NONE; не подтверждение межпрофильного транспорта.
+
+Внешняя CLIENT попытка: TCP_CONNECT STARTED 8ms, FAILURE TIMEOUT 2014ms.
+Внутренний ручной listener: LISTEN SUCCESS, TCP_ACCEPT STARTED, без ACCEPT SUCCESS,
+остановлен пользователем около 39 секунд. Попытки не имеют общего run ID;
+сопоставление по действиям владельца. Причина межпрофильной недостижимости
+точно не установлена, TLS handshake для этой CLIENT попытки не начинался.
+Сведения совместимы с ограничениями межпрофильного loopback, но сами по себе
+не доказывают конкретную ОС-политику, firewall, VPN или состояние контейнера.
+Дальнейший этап — разрешённые публичные транспорты (P1), отдельно work profile
+и Secure Folder; повторять прежний TLS self-check без новых изменений не нужно.
+
+0.1.5-clipboard: commit `291c396`, CI
+https://github.com/d3TaL/work_profile_bridge/actions/runs/39136578854 — SUCCESS.
+core:test, Debug/Release build, lintDebug/lintRelease в strict mode — PASS.
+Поля TLS теперь обычные текстовые, явные кнопки copy/paste; clipboard sensitive,
+чтение только текста по действию, без URI/Intent coercion. Реальный UI clipboard
+и межпрофильная политика clipboard пока не проверены.
+
+APK: `/storage/emulated/0/Download/artifacts/profile-bridge-0.1.5-clipboard-291c396.apk`.
+SHA-256: `b219735012aec3f6e9cdf471a6455b9c8dc4fe92d5bb32897a12dea56dd76edb`.
+Оригиналы: `run-39136578854/profile-bridge-apks-7/`; обе checksum APK — OK.
+
 ## 2026-10-18 — 0.1.4-keystore-tls
 
 - APK commit `b8f3251` (d3TaL); CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39132513756 — SUCCESS.
