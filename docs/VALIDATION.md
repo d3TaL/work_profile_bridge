@@ -2,6 +2,15 @@
 
 ## 2026-10-18 — 0.1.3-key-diagnostics
 
+- APK commit: `fa66fe0`; автор/коммитер d3TaL.
+- CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39131660837 — SUCCESS.
+- Локально `:core:test --dependency-verification strict` — PASS (24 теста).
+- CI: core:test, assembleDebug/Release, lintDebug/Release — PASS, strict verification.
+- Debug APK: `/storage/emulated/0/Download/artifacts/profile-bridge-0.1.3-key-diagnostics-fa66fe0.apk`.
+- SHA-256: `d10ca52694c2add1bbd59530734e4e9062d1e0c7c3f1004cbe7438180417438f`.
+- Оригинальный комплект: `Download/artifacts/run-39131660837/profile-bridge-apks-5/`.
+  Обе контрольные суммы оригинальных APK проверены: OK.
+
 Получен отчёт владельца `report-4703863896238174962.txt` из внутренней копии
 0.1.2. Тип внутреннего пространства в самом отчёте не указан. Пять локальных
 self-check попыток: identity/context PASS, bind/listen/connect/accept PASS,
