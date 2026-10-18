@@ -15,6 +15,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import androidx.core.content.FileProvider
 import android.content.ClipData
+import android.content.ClipboardManager
+import android.os.PersistableBundle
+import dev.profilebridge.core.tls.PairingCode
 import android.content.ActivityNotFoundException
 import java.io.File
 import dev.profilebridge.app.platform.IncomingLinkReader
@@ -55,12 +58,27 @@ class MainActivity : ComponentActivity() {
                 openCopy = { target -> message = if (ProfileDiagnostics.open(this, target)) R.string.open_ok else R.string.open_failed },
                 openHandler = ::openHandler,
                 shareReport = ::shareReport,
+                copyCode = ::copyCode, pasteCode = ::pasteCode,
             )
         }
     }
     override fun onResume() { super.onResume(); refresh() }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); receive(intent) }
     override fun onStop() { edit(""); probe.screenStopped(); super.onStop() }
+    private fun copyCode(value: String) {
+        val clip = ClipData.newPlainText(getString(R.string.session_code), value)
+        clip.description.extras = PersistableBundle().apply {
+            putBoolean("android.content.extra.IS_SENSITIVE", true)
+        }
+        getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
+    }
+    private fun pasteCode() {
+        val clip = getSystemService(ClipboardManager::class.java).primaryClip ?: return
+        if (clip.itemCount != 1) return
+        // Read text only: never resolve clipboard URI/Intent or coerce external content.
+        val value = clip.getItemAt(0).text ?: return
+        if (value.length <= PairingCode.MAX_LENGTH) probe.edit(value.toString())
+    }
     private fun shareReport(report: String) {
         lifecycleScope.launch {
             try {

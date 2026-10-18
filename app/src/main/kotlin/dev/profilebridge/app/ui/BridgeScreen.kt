@@ -23,7 +23,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.profilebridge.app.R
@@ -36,6 +35,7 @@ fun BridgeScreen(
     changeUrl: (String) -> Unit, inspect: () -> Unit, clear: () -> Unit,
     openCopy: (UserHandle) -> Unit, openHandler: (LocalHandler) -> Unit,
     shareReport: (String) -> Unit,
+    copyCode: (String) -> Unit, pasteCode: () -> Unit,
 ) {
     val state by probe.state.collectAsStateWithLifecycle()
     MaterialTheme {
@@ -71,8 +71,9 @@ fun BridgeScreen(
                             Text(stringResource(R.string.start))
                         }
                         if (state.sessionCode != null) {
-                            OutlinedTextField(value = state.sessionCode.orEmpty(), onValueChange = {}, readOnly = true,
-                                label = { Text(stringResource(R.string.session_code)) }, modifier = Modifier.fillMaxWidth())
+                             OutlinedTextField(value = state.sessionCode.orEmpty(), onValueChange = {}, readOnly = true,
+                                 label = { Text(stringResource(R.string.session_code)) }, modifier = Modifier.fillMaxWidth())
+                             OutlinedButton(onClick = { state.sessionCode?.let(copyCode) }) { Text(stringResource(R.string.copy_code)) }
                             OutlinedButton(onClick = probe::stop) { Text(stringResource(R.string.stop)) }
                         }
                          Text(stringResource(statusText(state.listener)))
@@ -81,8 +82,13 @@ fun BridgeScreen(
                          state.serverFailure?.let { Text("SERVER failure: ${it.stage} · ${it.reason}") }
                         OutlinedTextField(value = state.input, onValueChange = probe::edit, singleLine = true,
                             label = { Text(stringResource(R.string.input_code)) }, modifier = Modifier.fillMaxWidth(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
-                            visualTransformation = PasswordVisualTransformation())
+                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, autoCorrectEnabled = false))
+                         OutlinedButton(onClick = pasteCode, enabled = state.result != ProbeStatus.CHECKING) {
+                             Text(stringResource(R.string.paste_code))
+                         }
+                         OutlinedButton(onClick = { copyCode(state.input) }, enabled = state.input.isNotEmpty()) {
+                             Text(stringResource(R.string.copy_code))
+                         }
                         Button(onClick = probe::ping, enabled = state.result != ProbeStatus.CHECKING) { Text(stringResource(R.string.ping)) }
                          if (state.result != ProbeStatus.IDLE) Text(stringResource(statusText(state.result)))
                          state.clientEvent?.let { Text("${it.side}: ${it.stage} · ${it.status} · ${it.reason}") }
