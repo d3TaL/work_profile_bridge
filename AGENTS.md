@@ -21,6 +21,10 @@ GitHub Actions, скачивание APK и SHA-256 в `/storage/emulated/0/Down
 (`<85562612+d3TaL@users.noreply.github.com>`), без упоминаний ассистента и
 Co-authored-by. Использовать переменные окружения git, не менять git config.
 
+Сборки, тесты и lint выполнять через GitHub Actions, не локально на телефоне.
+Форк Shelter находится в `/root/projects/shelter-profile-bridge`, remote
+`d3TaL/shelter-profile-bridge`; его изменения коммитить в отдельный репозиторий.
+
 Один APK устанавливается в основной профиль, рабочий профиль и Samsung Secure Folder. Android 11+ (minSdk 30), основное устройство владельца Android 17 / One UI 9. Не считать Secure Folder обычным work profile.
 
 Проект восстановлен из переписки после очистки среды. Старые контрольные суммы и результаты сборок не выдавать за результаты этой версии. Текущие результаты записывать в docs/VALIDATION.md.

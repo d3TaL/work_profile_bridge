@@ -1,5 +1,26 @@
 # Проверки восстановленной версии
 
+## Коррекция исследования Shelter и отдельный форк
+
+При полном изучении upstream Shelter обнаружен существующий пункт контекстного
+меню рабочей копии приложения **«Разрешить работу между профилями»**
+(AppListFragment, MENU_ITEM_ALLOW_CROSS_PROFILE_INTERACTION). Он вызывает
+setCrossProfilePackages. Прежнее утверждение об отсутствии такого UI ошибочно.
+Сначала проверить его в установленном Shelter для рабочей копии Profile Bridge,
+затем отдельно выдать user consent в системных настройках моста.
+
+По поручению владельца подготовлен отдельный форк
+https://github.com/d3TaL/shelter-profile-bridge в
+`/root/projects/shelter-profile-bridge`, commit APK 95b591e. Он добавляет
+понятный переключатель fixed-package allowlist с readback и сохранением
+остальных записей, отзывом, проверкой Binder caller package/signer.
+CI 39169534585 PASS: тесты, lint 0 ошибок/77 warnings upstream, Debug/Release.
+APK `Download/artifacts/shelter-profile-bridge-95b591e-test.apk`;
+SHA-256 7d8522f09f13dfaf6290155e7ed939be71227fd2a49593c54395f735f0d25617.
+Подпись тестового APK проверена, отличается от установленного Shelter.
+Установленный DPC и рабочий профиль не удалялись, форк не устанавливался.
+Дальнейшие сборки по указанию владельца — только GitHub Actions.
+
 ## 0.1.6 — передача ссылки CrossProfileApps
 
 ### Сборка и установка
