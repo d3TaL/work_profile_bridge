@@ -7,8 +7,10 @@ import android.content.Intent
 import android.content.pm.CrossProfileApps
 import android.os.UserHandle
 import dev.profilebridge.app.MainActivity
+import dev.profilebridge.app.StoreReceiveActivity
 import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
+import dev.profilebridge.core.links.StoreLinks
 
 enum class ProfileAccess { GRANTED, REQUESTABLE, NOT_AVAILABLE, UNKNOWN }
 enum class ProfileSendResult { SUBMITTED_UNKNOWN_OUTCOME, INVALID_LINK, NO_TARGET, ACCESS_DENIED, UNAVAILABLE, UNKNOWN_OUTCOME }
@@ -43,9 +45,11 @@ object ProfileDiagnostics {
             if (!api.canInteractAcrossProfiles()) return ProfileSendResult.ACCESS_DENIED
             // Never forward the incoming Intent, flags, ClipData, grants or extra fields.
             val outgoing = Intent(Intent.ACTION_SEND).apply {
-                component = ComponentName(activity, MainActivity::class.java)
+                component = ComponentName(activity, if (StoreLinks.target(parsed.link) != null)
+                    StoreReceiveActivity::class.java else MainActivity::class.java)
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, parsed.link.original)
+                if (component?.className == StoreReceiveActivity::class.java.name) StoreDelivery.stamp(this)
             }
             api.startActivity(outgoing, target, activity)
             ProfileSendResult.SUBMITTED_UNKNOWN_OUTCOME

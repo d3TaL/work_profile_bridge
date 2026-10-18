@@ -26,16 +26,20 @@ import dev.profilebridge.app.platform.LocalLinkLauncher
 import dev.profilebridge.app.platform.ProfileDiagnostics
 import dev.profilebridge.app.platform.ProfileAccess
 import dev.profilebridge.app.platform.ProfileSendResult
+import dev.profilebridge.app.platform.StoreDelivery
 import dev.profilebridge.app.ui.BridgeScreen
 import dev.profilebridge.app.ui.ProbeViewModel
 import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
+import dev.profilebridge.core.links.StoreLinks
+import androidx.lifecycle.Lifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : ComponentActivity() {
+open class MainActivity : ComponentActivity() {
+    protected open val trustedStoreEntry: Boolean = false
     private val probe: ProbeViewModel by viewModels()
     private var targets by mutableStateOf<List<UserHandle>>(emptyList())
     private var message by mutableStateOf<Int?>(null)
@@ -46,12 +50,16 @@ class MainActivity : ComponentActivity() {
     private var link: SafeLink? = null
     private var queryJob: Job? = null
     private var launchJob: Job? = null
+    private var pendingStoreOpen = false
+    private var autoOpenStores by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
-        receive(intent)
+        autoOpenStores = storeAutoOpenEnabled()
+        if (savedInstanceState == null) receive(intent)
+        else setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
         setContent {
             BridgeScreen(
                 probe = probe, targets = targets, message = message,
@@ -68,12 +76,46 @@ class MainActivity : ComponentActivity() {
                         else R.string.profile_settings_unavailable
                 },
                 sendToCopy = ::sendToCopy,
+                autoOpenStores = autoOpenStores,
+                setAutoOpenStores = { enabled ->
+                    autoOpenStores = enabled
+                    getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("auto-open", enabled).apply()
+                },
             )
         }
     }
-    override fun onResume() { super.onResume(); refresh() }
-    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); receive(intent) }
-    override fun onStop() { edit(""); probe.screenStopped(); super.onStop() }
+    override fun onResume() { super.onResume(); autoOpenStores = storeAutoOpenEnabled(); refresh() }
+    override fun onPostResume() { super.onPostResume(); openPendingStore() }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent); setIntent(intent); receive(intent); openPendingStore()
+    }
+    override fun onStop() {
+        pendingStoreOpen = false
+        launchJob?.cancel()
+        edit(""); probe.screenStopped(); super.onStop()
+    }
+    private fun storeAutoOpenEnabled() =
+        getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open", false)
+
+    private fun openPendingStore() {
+        if (!pendingStoreOpen || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+        pendingStoreOpen = false
+        if (!storeAutoOpenEnabled()) return
+        val selected = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link ?: return
+        val target = StoreLinks.target(selected) ?: return
+        launchJob?.cancel()
+        link = selected
+        val handler = LocalHandler(target)
+        launchJob = lifecycleScope.launch {
+            val ok = LocalLinkLauncher.open(this@MainActivity, selected, handler) {
+                storeAutoOpenEnabled() && link === selected && url == selected.original
+            }
+            if (link === selected) {
+                if (ok) edit("")
+                linkError = if (ok) R.string.open_ok else R.string.store_open_failed
+            }
+        }
+    }
     private fun copyCode(value: String) {
         val clip = ClipData.newPlainText(getString(R.string.session_code), value)
         clip.description.extras = PersistableBundle().apply {
@@ -113,11 +155,16 @@ class MainActivity : ComponentActivity() {
     }
     private fun receive(incoming: Intent) {
         val value = IncomingLinkReader.read(this, incoming)
+        pendingStoreOpen = false
+        launchJob?.cancel()
         setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
         if (value != null) {
             edit("")
-            if (SafeLink.parse(value) is LinkParseResult.Accepted) {
-                edit(value)
+            val extracted = if (incoming.action == Intent.ACTION_SEND) StoreLinks.fromShareText(value) else value
+            if (extracted != null && SafeLink.parse(extracted) is LinkParseResult.Accepted) {
+                edit(extracted)
+                pendingStoreOpen = trustedStoreEntry && incoming.action == Intent.ACTION_SEND &&
+                    StoreDelivery.consume(this, incoming) && storeAutoOpenEnabled()
                 message = R.string.link_received
             } else linkError = R.string.invalid_url
         }
@@ -140,6 +187,7 @@ class MainActivity : ComponentActivity() {
         refresh()
     }
     private fun edit(value: String) {
+        pendingStoreOpen = false
         queryJob?.cancel()
         link = null; handlers = emptyList(); linkError = null
         if (value.length <= SafeLink.MAX_BYTES) url = value

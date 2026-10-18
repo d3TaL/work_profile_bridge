@@ -5,12 +5,14 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.IntentSanitizer
 import dev.profilebridge.app.MainActivity
+import dev.profilebridge.app.StoreReceiveActivity
 import dev.profilebridge.core.links.SafeLink
 
 object IncomingLinkReader {
     fun read(context: Context, incoming: Intent): String? = try {
         val safe = IntentSanitizer.Builder()
             .allowComponent(ComponentName(context, MainActivity::class.java))
+            .allowComponent(ComponentName(context, StoreReceiveActivity::class.java))
             .allowAction(Intent.ACTION_MAIN).allowAction(Intent.ACTION_SEND).allowAction(Intent.ACTION_VIEW)
             .allowCategory(Intent.CATEGORY_LAUNCHER).allowCategory(Intent.CATEGORY_DEFAULT)
             .allowCategory(Intent.CATEGORY_BROWSABLE).allowType("text/plain")

@@ -14,9 +14,9 @@ import kotlinx.coroutines.withContext
 data class LocalHandler(val packageName: String)
 
 object LocalLinkLauncher {
-    fun handlers(activity: Activity, link: SafeLink): List<LocalHandler> = try {
+    fun handlers(activity: Activity, link: SafeLink, targetPackage: String? = null): List<LocalHandler> = try {
         @Suppress("DEPRECATION")
-        val candidates = activity.packageManager.queryIntentActivities(view(link), PackageManager.MATCH_DEFAULT_ONLY)
+        val candidates = activity.packageManager.queryIntentActivities(view(link).setPackage(targetPackage), PackageManager.MATCH_DEFAULT_ONLY)
         candidates.asSequence().filter {
             it.activityInfo.enabled && it.activityInfo.exported && it.activityInfo.permission == null &&
                 it.activityInfo.packageName != activity.packageName
@@ -25,7 +25,7 @@ object LocalLinkLauncher {
     } catch (_: SecurityException) { emptyList() }
 
     suspend fun open(activity: Activity, link: SafeLink, handler: LocalHandler, authorized: () -> Boolean): Boolean {
-        if (withContext(Dispatchers.IO) { handler !in handlers(activity, link) }) return false
+        if (withContext(Dispatchers.IO) { handler !in handlers(activity, link, handler.packageName) }) return false
         return withContext(Dispatchers.Main.immediate) {
             val owner = activity as? LifecycleOwner
             if (!authorized() || owner?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.RESUMED) != true) return@withContext false

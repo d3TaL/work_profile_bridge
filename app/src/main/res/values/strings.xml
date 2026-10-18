@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
     <string name="title">Profile Bridge · TLS диагностика</string>
-    <string name="intro">Версия 0.1.6. Экспериментальная передача HTTPS-ссылки другой копии через CrossProfileApps. Требуется разрешение Android, политика администратора и подтверждение пользователя.</string>
+    <string name="intro">Версия 0.1.7. Передача ссылок Ozon/Wildberries в рабочую копию. Магазины в основном профиле не нужны. Прямой канал требует межпрофильного доступа Android.</string>
     <string name="self_check">Проверить TLS внутри этого профиля</string>
     <string name="self_check_note">Локальная самопроверка использует AndroidKeyStore и правильный pin. Её успех не подтверждает связь между профилями.</string>
     <string name="remaining">Осталось: %1$d с</string>
@@ -21,10 +21,10 @@
     <string name="profile_access_denied">Передача ссылки не разрешена. Запуск копии без ссылки не даёт права передачи. Нужны разрешение Android, allowlist администратора/OEM и согласие пользователя.</string>
     <string name="profile_target_unavailable">Выбранная копия сейчас недоступна через CrossProfileApps.</string>
     <string name="profile_send">Передать ссылку в копию %1$d</string>
-    <string name="profile_send_note">Только публичная тестовая ссылка. Получатель проверяет адрес и ждёт ручного выбора локального приложения. Успех вызова Android не подтверждает получение; автоматических повторов нет.</string>
+    <string name="profile_send_note">Выберите копию для передачи ссылки. Если в ней включено автооткрытие магазинов, поддерживаемая ссылка откроется в Ozon или Wildberries. Для остальных адресов нужен ручной выбор. Успех вызова Android не подтверждает получение; повторов нет.</string>
     <string name="profile_submitted">Запрос передан Android. Получение не подтверждено: проверьте поле ссылки в другой копии. Не повторяйте отправку автоматически.</string>
     <string name="profile_unknown_outcome">Результат передачи неизвестен. Проверьте другую копию перед ручным повтором.</string>
-    <string name="link_received">HTTPS-ссылка получена и проверена. Выберите локальный обработчик вручную. Отправитель этим не аутентифицирован.</string>
+    <string name="link_received">HTTPS-ссылка получена и проверена. Выберите рабочую копию для передачи или локальный обработчик. Приём через общедоступный вход не подтверждает отправителя.</string>
     <string name="refresh">Обновить профили</string>
     <string name="open_copy">Открыть копию %1$d</string>
     <string name="open_ok">Запрос открытия передан Android.</string>
@@ -48,7 +48,10 @@
     <string name="tls_rejected">TLS-проверка не прошла. Соединение остановлено без перехода на незащищённый канал.</string>
     <string name="invalid">Некорректный код сессии.</string>
     <string name="self">Это код этой же копии. Нужен код другого пространства.</string>
-    <string name="link_title">Локальная HTTPS-проверка</string>
+    <string name="link_title">Ссылка и маршрутизация</string>
+    <string name="auto_open_stores">Автооткрытие магазинов в этой копии</string>
+    <string name="auto_open_stores_note">Включите у получателя. После нажатия «Передать ссылку» в другой копии мост откроет поддерживаемую страницу Ozon/Wildberries в этом профиле. Только для защищённого входа между одинаково подписанными копиями. Банковские, платёжные и произвольные ссылки автоматически не открываются.</string>
+    <string name="store_open_failed">Целевой магазин не открылся в этом профиле. Проверьте установку, активность профиля и поддержку ссылки. Автоматического повтора нет; можно найти обработчики вручную.</string>
     <string name="link_note">Проверка обработчиков текущего пространства. Используйте публичный URL без банковских токенов.</string>
     <string name="url">HTTPS-ссылка</string>
     <string name="inspect">Найти обработчики</string>

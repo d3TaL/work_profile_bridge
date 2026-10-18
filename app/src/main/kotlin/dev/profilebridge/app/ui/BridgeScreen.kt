@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ fun BridgeScreen(
     shareReport: (String) -> Unit,
     copyCode: (String) -> Unit, pasteCode: () -> Unit,
     profileAccess: ProfileAccess, requestProfileAccess: () -> Unit, sendToCopy: (UserHandle) -> Unit,
+    autoOpenStores: Boolean, setAutoOpenStores: (Boolean) -> Unit,
 ) {
     val state by probe.state.collectAsStateWithLifecycle()
     MaterialTheme {
@@ -115,7 +117,10 @@ fun BridgeScreen(
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(stringResource(R.string.link_title), style = MaterialTheme.typography.titleMedium)
-                        Text(stringResource(R.string.link_note))
+                         Text(stringResource(R.string.link_note))
+                         Text(stringResource(R.string.auto_open_stores))
+                         Switch(checked = autoOpenStores, onCheckedChange = setAutoOpenStores)
+                         Text(stringResource(R.string.auto_open_stores_note))
                         OutlinedTextField(value = url, onValueChange = changeUrl, modifier = Modifier.fillMaxWidth(), singleLine = true,
                             label = { Text(stringResource(R.string.url)) },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false))
