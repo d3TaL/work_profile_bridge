@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
     <string name="title">Profile Bridge · TLS диагностика</string>
-    <string name="intro">Диагностика 0.1.3. Проверка ключа и TLS; передача URL между профилями пока не включена.</string>
+    <string name="intro">Диагностика 0.1.4. Новая TLS-identity для EC digest signing; старый ключ сохранён. Коды прежних сессий недействительны. Передача URL между профилями пока не включена.</string>
     <string name="self_check">Проверить TLS внутри этого профиля</string>
     <string name="self_check_note">Локальная самопроверка использует AndroidKeyStore и правильный pin. Её успех не подтверждает связь между профилями.</string>
     <string name="remaining">Осталось: %1$d с</string>

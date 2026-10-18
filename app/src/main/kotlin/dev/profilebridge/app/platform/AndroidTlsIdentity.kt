@@ -19,7 +19,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object AndroidTlsIdentity {
-    private const val ALIAS = "profile_bridge_tls_probe_v1"
+    // v1 permits SHA256 only. Conscrypt delegates EC TLS digest signing via NONEwithECDSA.
+    // Keep v1 untouched; v2 is a new diagnostic identity, not a persistent pairing migration.
+    private const val ALIAS = "profile_bridge_tls_probe_v2"
 
     suspend fun load(diagnostic: DiagnosticAttempt): TlsIdentity = withContext(Dispatchers.IO) {
         diagnostic.record(DiagnosticStage.IDENTITY_LOAD)
@@ -28,7 +30,7 @@ object AndroidTlsIdentity {
             val now = System.currentTimeMillis()
             val spec = KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY)
                 .setAlgorithmParameterSpec(ECGenParameterSpec("secp256r1"))
-                .setDigests(KeyProperties.DIGEST_SHA256)
+                .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_NONE)
                 .setCertificateSubject(X500Principal("CN=Profile Bridge Local Probe"))
                 .setCertificateSerialNumber(BigInteger.ONE)
                 .setCertificateNotBefore(Date(now - 86_400_000L))
@@ -45,18 +47,25 @@ object AndroidTlsIdentity {
         cert.checkValidity()
         diagnostic.record(DiagnosticStage.IDENTITY_LOAD, DiagnosticStatus.SUCCESS)
         diagnostic.operation(DiagnosticStage.KEY_SIGN_CHECK) {
-            val challenge = ByteArray(32).also(java.security.SecureRandom()::nextBytes)
-            var signature: ByteArray? = null
-            try {
-                signature = java.security.Signature.getInstance("SHA256withECDSA").run {
-                    initSign(key); update(challenge); sign()
-                }
-                val valid = java.security.Signature.getInstance("SHA256withECDSA").run {
-                    initVerify(cert.publicKey); update(challenge); verify(signature)
-                }
-                if (!valid) throw java.security.SignatureException()
-            } finally { challenge.fill(0); signature?.fill(0) }
+            checkSignature(key, cert, "SHA256withECDSA")
+        }
+        diagnostic.operation(DiagnosticStage.KEY_RAW_SIGN_CHECK) {
+            checkSignature(key, cert, "NONEwithECDSA")
         }
         diagnostic.operation(DiagnosticStage.TLS_CONTEXT_INIT) { TlsContexts.server(key, cert, diagnostic) }
+    }
+
+    private fun checkSignature(key: PrivateKey, cert: X509Certificate, algorithm: String) {
+        val challenge = ByteArray(32).also(java.security.SecureRandom()::nextBytes)
+        var signature: ByteArray? = null
+        try {
+            signature = java.security.Signature.getInstance(algorithm).run {
+                initSign(key); update(challenge); sign()
+            }
+            val valid = java.security.Signature.getInstance(algorithm).run {
+                initVerify(cert.publicKey); update(challenge); verify(signature)
+            }
+            if (!valid) throw java.security.SignatureException()
+        } finally { challenge.fill(0); signature?.fill(0) }
     }
 }

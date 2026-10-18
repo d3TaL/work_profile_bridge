@@ -1,5 +1,30 @@
 # Проверки восстановленной версии
 
+## 2026-10-18 — 0.1.4-keystore-tls
+
+Получены `Reportout.txt` (внешняя копия) и `Reportprofile.txt` (внутренняя).
+В обеих копиях 0.1.3: KEY_SIGN_CHECK PASS, EC выбран, private key и цепочка
+запрошены, затем сервер HANDSHAKE_FAILED с causes=[HANDSHAKE,TLS]. Клиенты
+self-check: HANDSHAKE_FAILED с causes=[HANDSHAKE,IO]; peer validation отсутствует.
+Отдельная внешняя CLIENT попытка: TCP_CONNECT/CONNECTION_FAILED; внутренний
+listener не содержит TCP_ACCEPT SUCCESS для межпрофильной попытки. Автоматическая
+корреляция двух отчётов отсутствует; точный errno и причина сети неизвестны.
+
+В upstream Conscrypt `CryptoUpcalls.ecSignDigestWithPrivateKey` используется
+`NONEwithECDSA`, тогда как прежний AndroidKeyStore spec разрешал SHA256 only.
+Источник: https://github.com/google/conscrypt/blob/master/common/src/main/java/org/conscrypt/CryptoUpcalls.java .
+Это объясняет, почему SHA256 sign-check не доказывает совместимость TLS, но
+не является окончательным доказательством причины Samsung handshake failure.
+
+Новый alias v2 разрешает SHA256 и NONE для EC signing, v1 остаётся нетронутым.
+Проверка KEY_RAW_SIGN_CHECK использует NONEwithECDSA на 32 случайных байтах;
+данные/подпись обнуляются и не экспортируются. Provider штатный, pin и TLS 1.3
+сохранены. Ключ подписи APK не изменяется кодом приложения.
+
+Следующий тест: по одному self-check в обеих копиях и экспорт отчётов. Не
+повторять межпрофильный тест до подтверждения локального TLS. Физический
+результат версии 0.1.4 пока не проверен.
+
 ## 2026-10-18 — 0.1.3-key-diagnostics
 
 - APK commit: `fa66fe0`; автор/коммитер d3TaL.

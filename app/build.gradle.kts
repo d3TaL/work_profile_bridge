@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.1.3-key-diagnostics"
+        versionCode = 5
+        versionName = "0.1.4-keystore-tls"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {
