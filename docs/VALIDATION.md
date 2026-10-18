@@ -1,5 +1,29 @@
 # Проверки восстановленной версии
 
+## 2026-10-18 — 0.1.3-key-diagnostics
+
+Получен отчёт владельца `report-4703863896238174962.txt` из внутренней копии
+0.1.2. Тип внутреннего пространства в самом отчёте не указан. Пять локальных
+self-check попыток: identity/context PASS, bind/listen/connect/accept PASS,
+handshake FAIL на обеих сторонах (ANDROID_OPENSSL); PEER_VALIDATE отсутствует.
+Это наблюдение локального сбоя, не доказательство причины в Knox или сетевой
+межпрофильной границе. Подробная причина в версии 0.1.2 не установлена.
+
+Версия 0.1.3 добавляет проверку sign/verify того же AndroidKeyStore ключа и
+allowlisted категории цепочки исключений, события выбора серверного ключа,
+доступа к private key и certificate chain. Ни имя alias, ни сертификат, ни
+challenge/signature, ни exception.message в экспорт не попадают.
+
+Исследован upstream Conscrypt `NativeSsl.configureServerCertificate`,
+`setCertificate` и `SSLParametersImpl` (google/conscrypt, master на дату работы).
+Это описание upstream пути, не доказательство идентичности Samsung provider.
+Ссылки: https://github.com/google/conscrypt/blob/master/common/src/main/java/org/conscrypt/NativeSsl.java
+и https://github.com/google/conscrypt/blob/master/common/src/main/java/org/conscrypt/SSLParametersImpl.java .
+
+Следующий эксперимент: только одна локальная самопроверка во внутренней копии,
+затем экспорт нового отчёта. Межпрофильный тест до устранения локального отказа
+не нужен. Физический результат 0.1.3 пока неизвестен.
+
 ## Текущая итерация 2026-10-18 — 0.1.2-diagnostics
 
 ### Подтверждённая CI-сборка

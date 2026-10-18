@@ -24,4 +24,16 @@ class DiagnosticsTest {
         assertFalse(report.contains("secret.invalid"))
         assertFalse(report.contains("hidden"))
     }
+    @Test fun `wrapped signing failure exports only allowlisted categories`() {
+        val journal = DiagnosticJournal()
+        val attempt = DiagnosticAttempt(DiagnosticSide.SERVER, journal::add)
+        val error = SSLHandshakeException("secret payload")
+        error.initCause(java.security.SignatureException("private alias", java.security.InvalidKeyException("private key")))
+        attempt.failure(error)
+        val report = journal.report()
+        assertTrue(report.contains("causes=[HANDSHAKE, SIGNATURE, INVALID_KEY]"))
+        assertFalse(report.contains("secret payload"))
+        assertFalse(report.contains("private alias"))
+        assertFalse(report.contains("private key"))
+    }
 }

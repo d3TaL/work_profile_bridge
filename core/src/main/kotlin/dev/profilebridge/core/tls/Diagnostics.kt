@@ -14,7 +14,7 @@ import kotlinx.coroutines.CancellationException
 
 enum class DiagnosticSide { CLIENT, SERVER, SELF_CHECK }
 enum class DiagnosticStage {
-    IDENTITY_LOAD, TLS_CONTEXT_INIT, BIND, LISTEN, TCP_CONNECT, TCP_ACCEPT,
+    IDENTITY_LOAD, KEY_SIGN_CHECK, TLS_CONTEXT_INIT, BIND, LISTEN, TCP_CONNECT, TCP_ACCEPT,
     TLS_HANDSHAKE, PEER_VALIDATE, PROBE_WRITE, PROBE_READ, COMPLETE, SESSION_EXPIRED, STOPPED,
 }
 enum class DiagnosticStatus { STARTED, SUCCESS, FAILURE, UNKNOWN }
@@ -27,6 +27,8 @@ enum class DiagnosticReason {
 enum class ListenerState { NONE, STARTING, LISTENING, CLOSED, EXPIRED }
 enum class TlsProvider { CONSCRYPT, ANDROID_OPENSSL, SUN_JSSE, OTHER }
 enum class TlsVersion { TLS_1_3, OTHER }
+enum class KeyRequest { NONE, EC, RSA, OTHER }
+enum class ExceptionCategory { HANDSHAKE, TLS, INVALID_KEY, SIGNATURE, PROVIDER, SECURITY, CERTIFICATE, IO, CONFIGURATION, OTHER }
 
 /** Only closed enum fields and a locally generated ID can enter an export. */
 data class DiagnosticEvent(
@@ -39,6 +41,11 @@ data class DiagnosticEvent(
     val listener: ListenerState,
     val provider: TlsProvider?,
     val protocol: TlsVersion?,
+    val keyRequest: KeyRequest = KeyRequest.NONE,
+    val keySelected: Boolean = false,
+    val privateKeyRequested: Boolean = false,
+    val chainRequested: Boolean = false,
+    val causes: List<ExceptionCategory> = emptyList(),
 )
 
 class DiagnosticAttempt(
@@ -52,15 +59,34 @@ class DiagnosticAttempt(
     @Volatile var listener: ListenerState = ListenerState.NONE
     var provider: TlsProvider? = null
     var protocol: TlsVersion? = null
+    private var keyRequest = KeyRequest.NONE
+    private var keySelected = false
+    private var privateKeyRequested = false
+    private var chainRequested = false
+    private var causes: List<ExceptionCategory> = emptyList()
 
     @Synchronized fun record(next: DiagnosticStage, status: DiagnosticStatus = DiagnosticStatus.STARTED,
                reason: DiagnosticReason = DiagnosticReason.NONE) {
         stage = next
         emit(DiagnosticEvent(id, side, next, (System.nanoTime() - started) / 1_000_000,
-            status, reason, listener, provider, protocol))
+            status, reason, listener, provider, protocol, keyRequest, keySelected,
+            privateKeyRequested, chainRequested, causes.toList()))
     }
 
-    fun failure(error: Exception) = record(stage, DiagnosticStatus.FAILURE, diagnosticReason(error))
+    @Synchronized fun failure(error: Exception) {
+        causes = exceptionCategories(error)
+        record(stage, DiagnosticStatus.FAILURE, diagnosticReason(error))
+    }
+
+    @Synchronized fun keySelection(type: String?, selected: Boolean) {
+        keyRequest = when (type) { "EC" -> KeyRequest.EC; "RSA" -> KeyRequest.RSA; else -> KeyRequest.OTHER }
+        keySelected = keySelected || selected
+        record(stage)
+    }
+    @Synchronized fun keyAccess(chain: Boolean) {
+        if (chain) chainRequested = true else privateKeyRequested = true
+        record(stage)
+    }
 
     inline fun <T> operation(next: DiagnosticStage, action: () -> T): T {
         record(next)
@@ -75,6 +101,28 @@ class DiagnosticAttempt(
             else -> TlsProvider.OTHER
         }
     }
+}
+
+internal fun exceptionCategories(error: Throwable): List<ExceptionCategory> {
+    val result = mutableListOf<ExceptionCategory>()
+    var cause: Throwable? = error
+    repeat(8) {
+        val current = cause ?: return result.toList()
+        result.add(when (current) {
+            is SSLHandshakeException -> ExceptionCategory.HANDSHAKE
+            is SSLException -> ExceptionCategory.TLS
+            is java.security.InvalidKeyException -> ExceptionCategory.INVALID_KEY
+            is java.security.SignatureException -> ExceptionCategory.SIGNATURE
+            is ProviderException -> ExceptionCategory.PROVIDER
+            is java.security.cert.CertificateException -> ExceptionCategory.CERTIFICATE
+            is GeneralSecurityException, is SecurityException -> ExceptionCategory.SECURITY
+            is IOException -> ExceptionCategory.IO
+            is IllegalArgumentException -> ExceptionCategory.CONFIGURATION
+            else -> ExceptionCategory.OTHER
+        })
+        cause = current.cause
+    }
+    return result.toList()
 }
 
 /** Certificate verifier failures are typed, never recovered by parsing an exception message. */
@@ -117,7 +165,9 @@ class DiagnosticJournal {
         attempts.values.forEach { events -> events.forEach { event ->
             appendLine("${event.attemptId} ${event.side} ${event.elapsedMillis}ms ${event.stage} " +
                 "${event.status} ${event.reason} listener=${event.listener} " +
-                "provider=${event.provider ?: "UNKNOWN"} tls=${event.protocol ?: "UNKNOWN"}")
+                "provider=${event.provider ?: "UNKNOWN"} tls=${event.protocol ?: "UNKNOWN"} " +
+                "keyRequest=${event.keyRequest} selected=${event.keySelected} " +
+                "keyAccess=${event.privateKeyRequested} chainAccess=${event.chainRequested} causes=${event.causes}")
         } }
     }
 }

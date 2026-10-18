@@ -116,10 +116,10 @@ class ProbeViewModel : ViewModel() {
             val client = attempt(DiagnosticSide.SELF_CHECK)
             val server = attempt(DiagnosticSide.SERVER, server = true)
             try {
-                val result = probe.selfCheck(AndroidTlsIdentity.load(client), client, server)
+                val result = probe.selfCheck(AndroidTlsIdentity.load(server), client, server)
                 mutable.update { it.copy(result = status(result)) }
             } catch (cancelled: CancellationException) { client.failure(cancelled); throw cancelled }
-            catch (error: Exception) { client.failure(error); mutable.update { it.copy(result = ProbeStatus.TLS_REJECTED) } }
+            catch (error: Exception) { server.failure(error); mutable.update { it.copy(result = ProbeStatus.TLS_REJECTED) } }
             finally { mutable.update { it.copy(selfChecking = false,
                 result = if (it.result == ProbeStatus.CHECKING) ProbeStatus.FINISHED else it.result) } }
         }

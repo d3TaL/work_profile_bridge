@@ -44,6 +44,19 @@ object AndroidTlsIdentity {
         val cert = store.getCertificate(ALIAS) as X509Certificate
         cert.checkValidity()
         diagnostic.record(DiagnosticStage.IDENTITY_LOAD, DiagnosticStatus.SUCCESS)
-        diagnostic.operation(DiagnosticStage.TLS_CONTEXT_INIT) { TlsContexts.server(key, cert) }
+        diagnostic.operation(DiagnosticStage.KEY_SIGN_CHECK) {
+            val challenge = ByteArray(32).also(java.security.SecureRandom()::nextBytes)
+            var signature: ByteArray? = null
+            try {
+                signature = java.security.Signature.getInstance("SHA256withECDSA").run {
+                    initSign(key); update(challenge); sign()
+                }
+                val valid = java.security.Signature.getInstance("SHA256withECDSA").run {
+                    initVerify(cert.publicKey); update(challenge); verify(signature)
+                }
+                if (!valid) throw java.security.SignatureException()
+            } finally { challenge.fill(0); signature?.fill(0) }
+        }
+        diagnostic.operation(DiagnosticStage.TLS_CONTEXT_INIT) { TlsContexts.server(key, cert, diagnostic) }
     }
 }

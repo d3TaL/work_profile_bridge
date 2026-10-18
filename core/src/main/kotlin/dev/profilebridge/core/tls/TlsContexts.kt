@@ -21,10 +21,10 @@ class TlsIdentity(val context: SSLContext, certificatePin: ByteArray) {
 }
 
 object TlsContexts {
-    fun server(key: PrivateKey, certificate: X509Certificate): TlsIdentity {
+    fun server(key: PrivateKey, certificate: X509Certificate, diagnostic: DiagnosticAttempt? = null): TlsIdentity {
         certificate.checkValidity()
         val context = SSLContext.getInstance("TLS")
-        context.init(arrayOf(SingleKeyManager(key, certificate)), null, null)
+        context.init(arrayOf(SingleKeyManager(key, certificate, diagnostic)), null, null)
         return TlsIdentity(context, fingerprint(certificate))
     }
 
@@ -70,11 +70,23 @@ private class PinnedTrustManager(pin: ByteArray, private val diagnostic: Diagnos
 private class SingleKeyManager(
     private val key: PrivateKey,
     private val certificate: X509Certificate,
+    private val diagnostic: DiagnosticAttempt?,
 ) : X509ExtendedKeyManager() {
-    private fun alias(keyType: String?): String? = if (keyType == certificate.publicKey.algorithm) "identity" else null
-    override fun getPrivateKey(alias: String?): PrivateKey? = key.takeIf { alias == "identity" }
-    override fun getCertificateChain(alias: String?): Array<X509Certificate>? =
-        if (alias == "identity") arrayOf(certificate) else null
+    private fun alias(keyType: String?): String? {
+        val selected = keyType == certificate.publicKey.algorithm
+        diagnostic?.keySelection(keyType, selected)
+        return if (selected) "identity" else null
+    }
+    override fun getPrivateKey(alias: String?): PrivateKey? {
+        if (alias != "identity") return null
+        diagnostic?.keyAccess(chain = false)
+        return key
+    }
+    override fun getCertificateChain(alias: String?): Array<X509Certificate>? {
+        if (alias != "identity") return null
+        diagnostic?.keyAccess(chain = true)
+        return arrayOf(certificate)
+    }
     override fun getServerAliases(keyType: String?, issuers: Array<out Principal>?): Array<String>? =
         alias(keyType)?.let { arrayOf(it) }
     override fun chooseServerAlias(keyType: String?, issuers: Array<out Principal>?, socket: Socket?): String? = alias(keyType)
