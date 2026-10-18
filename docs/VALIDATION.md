@@ -2,6 +2,26 @@
 
 ## Текущая итерация 2026-10-18 — 0.1.2-diagnostics
 
+### Подтверждённая CI-сборка
+
+- Commit APK: `95171bf` (автор и коммитер d3TaL).
+- GitHub Actions: https://github.com/d3TaL/work_profile_bridge/actions/runs/39130603916 — SUCCESS.
+- Полный набор `:core:test :app:assembleDebug :app:lintDebug :app:assembleRelease
+  :app:lintRelease --dependency-verification strict` — PASS на GitHub runner.
+- Исправлена явная установка SDK и исключён удалённый legacy package `tools`.
+  Дополнена отсутствовавшая SHA-256 запись `groovy-bom-4.0.29.pom` после
+  отдельной загрузки с HTTPS Maven Central; прежние checksum сохранены.
+- Debug APK скачан в `/storage/emulated/0/Download/artifacts/profile-bridge-0.1.2-diagnostics-95171bf.apk`.
+- Debug SHA-256: `9560e6b53c6eb00f5995c1bde1a586bd7388f040540717ae9ea02901c3460b0b`.
+- Release unsigned SHA-256: `3ccac29e4a10f391c2fd940cd38733eb9ecec2ce4e2e3da937ddd6c46c4b6220`.
+- Оригинальные артефакты и `BUILD.txt`, `SHA256SUMS` сохранены в
+  `/storage/emulated/0/Download/artifacts/run-39130603916/profile-bridge-apks-4/`.
+  `sha256sum -c SHA256SUMS` — OK для обоих APK.
+- Debug подписан ключом чистого CI runner; совместимость обновления со старой
+  установленной версией не подтверждена. Физические проверки ещё не выполнены.
+
+### Первоначальные локальные проверки (до подключения CI)
+
 - JDK: Temurin 17.0.20.1, Linux aarch64; Gradle 9.8.1 (wrapper checksum включён).
 - `:core:test --dependency-verification strict`: PASS, 23 теста. Включены неверный
   pin до отправки токена, локальный self-check, отмена listener во время handshake,
