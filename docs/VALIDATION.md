@@ -2,6 +2,14 @@
 
 ## 2026-10-18 — 0.1.4-keystore-tls
 
+- APK commit `b8f3251` (d3TaL); CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39132513756 — SUCCESS.
+- Локально core:test: 24 теста PASS, strict verification.
+- CI core:test, assembleDebug/Release, lintDebug/Release — PASS, strict verification.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.1.4-keystore-tls-b8f3251.apk`.
+- SHA-256 `214628719a6d7d81def62e9f0fe47bdedf9a83bbdf1e621ca446b8068f4e2365`.
+- Оригиналы: `Download/artifacts/run-39132513756/profile-bridge-apks-6/`;
+  checksum Debug/Release проверены: OK. Подпись CI Debug временная.
+
 Получены `Reportout.txt` (внешняя копия) и `Reportprofile.txt` (внутренняя).
 В обеих копиях 0.1.3: KEY_SIGN_CHECK PASS, EC выбран, private key и цепочка
 запрошены, затем сервер HANDSHAKE_FAILED с causes=[HANDSHAKE,TLS]. Клиенты
