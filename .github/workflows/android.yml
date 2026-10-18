@@ -1,0 +1,55 @@
+name: Android checks
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - run: sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
+      - name: Test, lint and build
+        run: bash ./gradlew :core:test :app:assembleDebug :app:lintDebug :app:assembleRelease :app:lintRelease --dependency-verification strict
+      - name: Prepare APK artifacts
+        shell: bash
+        run: |
+          mkdir -p ci-artifacts
+          cp app/build/outputs/apk/debug/app-debug.apk ci-artifacts/profile-bridge-debug.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk ci-artifacts/profile-bridge-release-unsigned.apk
+          cd ci-artifacts
+          sha256sum *.apk > SHA256SUMS
+          printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > BUILD.txt
+      - name: Upload APKs and checksums
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: profile-bridge-apks-${{ github.run_number }}
+          path: ci-artifacts/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload verification reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: profile-bridge-reports-${{ github.run_number }}
+          path: |
+            core/build/reports/tests/
+            core/build/test-results/test/
+            app/build/reports/lint-results-*
+          if-no-files-found: ignore
+          retention-days: 14
