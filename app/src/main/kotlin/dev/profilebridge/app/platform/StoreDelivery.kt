@@ -24,7 +24,7 @@ object StoreDelivery {
             .allowComponent(ComponentName(context, StoreReceiveActivity::class.java))
             .allowAction(Intent.ACTION_SEND).allowType("text/plain")
             .allowExtra(ID, String::class.java)
-            .allowExtra(SENT, java.lang.Long::class.java)
+            .allowExtra(SENT, Long::class.javaObjectType)
             .build().sanitizeByFiltering(incoming)
         safe.action == Intent.ACTION_SEND && gate.consume(safe.getStringExtra(ID),
             safe.getLongExtra(SENT, -1), SystemClock.elapsedRealtime())
