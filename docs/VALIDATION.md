@@ -2,6 +2,12 @@
 
 ## 0.1.6 — передача ссылки CrossProfileApps
 
+Первая CI `39167086778`: Kotlin/assembleDebug PASS; lint ProtectedPermissions
+отклонил manifest permission. Проверено на телефоне: protection=signature|appop,
+что согласуется с public CrossProfileApps Settings consent flow. Добавлено
+точечное tools:ignore только на эту uses-permission с пояснением. Общего
+baseline/отключения lint нет; фактические access checks сохранены.
+
 Владелец подтвердил работающую кнопку открытия копии и обратное ручное share
 из браузера Knox в основное пространство. Для открытия копии точный target
 не зафиксирован автоматизацией, не выдавать за подтверждение Secure Folder.
