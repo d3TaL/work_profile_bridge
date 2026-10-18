@@ -2,6 +2,29 @@
 
 ## 0.1.6 — передача ссылки CrossProfileApps
 
+### Сборка и установка
+
+- APK commit `e79eeb2` (код функции `08f5945`), автор/коммитер d3TaL.
+- CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39167404563 — SUCCESS:
+  core:test, assembleDebug/Release, lintDebug/Release, strict verification PASS.
+  Локальный core:test UP-TO-DATE (24 существующих теста); Android IPC device
+  tests не выполнялись.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.1.6-cross-profile-link-e79eeb2.apk`.
+- SHA-256 `ccbc5d4ab3d4213c0dbdabad770b41468de93c3fb89e73650aace34c13f6b591`.
+- Оригиналы `run-39167404563/profile-bridge-apks-9/`; checksum Debug/Release OK.
+- По явному поручению владельца удалены старые установки пакета через
+  `adb uninstall dev.profilebridge.app` (SUCCESS), данные/identity удаляются.
+  До удаления installed=true только user 0, users 10/150 уже installed=false.
+- `adb install --user 0` — SUCCESS. Холодный старт MainActivity — PASS,
+  dumpsys подтверждает 0.1.6/versionCode 7 в основном профиле.
+- `install-existing --user 10` и `--user 150` — SecurityException: shell
+  не имеет доступа к этим users. Политики не менялись. На последней проверке
+  installed=false в users 10/150. Для завершения установки владелец должен
+  клонировать новую основную копию через Shelter и «Добавить приложения» Knox.
+- Межпрофильная передача 0.1.6 не проверена: копии ещё не установлены,
+  право взаимодействия не выдано. После клонирования проверить настройки
+  доступа; отказ allowlist является допустимым результатом эксперимента.
+
 Первая CI `39167086778`: Kotlin/assembleDebug PASS; lint ProtectedPermissions
 отклонил manifest permission. Проверено на телефоне: protection=signature|appop,
 что согласуется с public CrossProfileApps Settings consent flow. Добавлено
