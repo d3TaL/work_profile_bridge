@@ -1,5 +1,31 @@
 # Проверки восстановленной версии
 
+## 0.4.0-auto-banks-report — повторная проверка выпуска
+
+- Первый run 39267981852 упал на Kotlin expression в записи отчёта; исправлен
+  отдельным коммитом. Итоговый APK commit 2e6d4d5.
+- https://github.com/d3TaL/work_profile_bridge/actions/runs/39268499508 SUCCESS,
+  headSha 2e6d4d54f89720a21eaa9a67183e4ebb280032ff, повторно сверено через API.
+- Скачанные XML: 35 tests, 0 failures/errors/skipped, lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- Скачивание сначала прерывалось по timeout, затем успешно завершилось.
+  Оба оригинальных SHA256SUMS OK. Итоговый файл отдельно sha256sum совпал.
+- APK Download/artifacts/profile-bridge-0.4.0-auto-banks-report-2e6d4d5.apk;
+  SHA-256 b6b267bbe5dfca97bb85703ec3b6edb80485736eb4a07643940225eeef189d92.
+- apksig verified=true errors=[]; signer SHA-256
+  d25e278f9a58929891b76a8fcad06ca95c639e48c84d47d81f0d81528ace93a2.
+- Новое поведение: AppRules bank AUTOMATIC только после диалога пользователя,
+  default CONFIRM; receiver/sender согласия независимы. Local bank handler query
+  вне main, выбор первого поддерживаемого пакета, повторная проверка RESUMED.
+  Нет автоматических retries; Knox chooser по-прежнему ручной.
+- Отчёт после просмотра сохраняется CreateDocument в IO, только фиксированные
+  безопасные коды. URL в отчёт не включается. Никаких storage permissions.
+- Device тесты банковской автоматики и сохранения ещё не выполнены, агент
+  ничего не устанавливал. В обеих копиях выбрать банки → AUTOMATIC с согласием;
+  sender auto-forward, receiver auto-open; Knox public share opt-in отдельно.
+  Сначала проверить форму без подтверждения платежа, затем отмену/возврат.
+  Временный signer отличается от предыдущих, обновление поверх не обещается.
+
 ## 0.3.9-ozon-bank-handler
 
 - Владелец подтвердил работу банковской версии 0.3.8, Ozon обработчик не найден;
