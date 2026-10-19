@@ -87,3 +87,12 @@ AndroidManifest, themes/strings, app version, DOMAIN_REGISTRY и release docs.
 Проверки: CI core:test, lintDebug/Release, assembleDebug/Release; device cold/warm,
 пауза/исчезновение выбранного профиля, отсутствие магазина, rotation и циклы
 ожидают владельца. Компактная Activity не является обходом BAL.
+# 0.2.1 — роль и транзитное окно
+
+Те же android-intent-security инструкции commit 5bda39f применены к MainActivity,
+ProfileRole, BridgeScreen, manifest/themes. Публичные UserManager API, без Knox API
+или новых разрешений. Signature receiver/sanitizer не изменены. Автонастройка
+основной/managed копии запрошена владельцем; compact остаётся opt-in. Никакого
+service/FGS, incoming Intent forwarding или обхода lifecycle. Полный diff:
+`git diff 466a663..HEAD -- app`. Не обещается невидимый запуск: translucent Activity
+может влиять на BAL и требует теста на Samsung; при наблюдаемом отказе UI виден.

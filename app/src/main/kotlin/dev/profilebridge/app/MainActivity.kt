@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import androidx.core.content.FileProvider
@@ -28,6 +29,8 @@ import dev.profilebridge.app.platform.ProfileDiagnostics
 import dev.profilebridge.app.platform.ProfileAccess
 import dev.profilebridge.app.platform.ProfileSendResult
 import dev.profilebridge.app.platform.StoreDelivery
+import dev.profilebridge.app.platform.ProfileRole
+import dev.profilebridge.app.platform.ProfileRoles
 import dev.profilebridge.app.ui.BridgeScreen
 import dev.profilebridge.app.ui.ProbeViewModel
 import dev.profilebridge.core.links.LinkParseResult
@@ -56,7 +59,9 @@ open class MainActivity : ComponentActivity() {
     private var autoOpenStores by mutableStateOf(false)
     private var autoForward by mutableStateOf(false)
     private var compactMode by mutableStateOf(false)
-    private var targetSerial by mutableStateOf(-1L)
+    private var targetSerial by mutableLongStateOf(-1L)
+    private var role = ProfileRole.UNKNOWN
+    private var transit by mutableStateOf(false)
     private var compactEntry = false
     private var pendingForward = false
     private var debugEnabled by mutableStateOf(false)
@@ -70,9 +75,25 @@ open class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val prefs = getSharedPreferences("store-routing", MODE_PRIVATE)
+        role = ProfileRoles.detect(this)
+        // Apply role defaults once. Never override a switch changed by the owner.
+        if (!prefs.getBoolean("role-defaults-v1", false)) {
+            val editor = prefs.edit().putBoolean("role-defaults-v1", true)
+            if (role == ProfileRole.MAIN && !prefs.getBoolean("forward-manual", false))
+                editor.putBoolean("auto-forward", true)
+            if (role == ProfileRole.MANAGED && !prefs.getBoolean("open-manual", false))
+                editor.putBoolean("auto-open", true)
+            editor.apply()
+        }
+        if (role == ProfileRole.MAIN && !prefs.contains("target-serial")) {
+            ProfileDiagnostics.targets(this).singleOrNull()?.let { target ->
+                val value = serial(target)
+                if (value >= 0) prefs.edit().putLong("target-serial", value).apply()
+            }
+        }
         compactEntry = prefs.getBoolean("compact", false) &&
             (intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_VIEW)
-        if (compactEntry) setTheme(R.style.Theme_ProfileBridge_Compact)
+        setTheme(if (compactEntry) R.style.Theme_ProfileBridge_Transit else R.style.Theme_ProfileBridge)
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         if (!compactEntry) enableEdgeToEdge()
@@ -83,10 +104,18 @@ open class MainActivity : ComponentActivity() {
         debugEnabled = getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("debug", false)
         if (savedInstanceState == null) receive(intent)
         else setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
+        transit = compactEntry && (pendingForward || pendingStoreOpen)
         setContent {
+            if (!transit) {
             BridgeScreen(
                 targets = targets, message = message,
                 device = getString(R.string.device, Build.VERSION.RELEASE, Build.VERSION.SDK_INT, applicationInfo.targetSdkVersion),
+                profileRole = getString(when (role) {
+                    ProfileRole.MAIN -> R.string.role_main
+                    ProfileRole.MANAGED -> R.string.role_managed
+                    ProfileRole.OTHER -> R.string.role_other
+                    ProfileRole.UNKNOWN -> R.string.role_unknown
+                }),
                 url = url, linkError = linkError, handlers = handlers,
                 refresh = ::refresh, changeUrl = ::edit, inspect = ::inspect, clear = { edit("") },
                 openCopy = { target -> message = if (ProfileDiagnostics.open(this, target)) R.string.open_ok else R.string.open_failed },
@@ -101,7 +130,8 @@ open class MainActivity : ComponentActivity() {
                 autoOpenStores = autoOpenStores,
                 setAutoOpenStores = { enabled ->
                     autoOpenStores = enabled
-                    getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("auto-open", enabled).apply()
+                    getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("auto-open", enabled)
+                        .putBoolean("open-manual", true).apply()
                 },
                 debugEnabled = debugEnabled,
                 setDebugEnabled = { enabled ->
@@ -114,7 +144,7 @@ open class MainActivity : ComponentActivity() {
                 autoForward = autoForward,
                 setAutoForward = { enabled ->
                     autoForward = enabled
-                    prefs.edit().putBoolean("auto-forward", enabled).apply()
+                    prefs.edit().putBoolean("auto-forward", enabled).putBoolean("forward-manual", true).apply()
                 },
                 compactMode = compactMode,
                 setCompactMode = { enabled ->
@@ -127,6 +157,7 @@ open class MainActivity : ComponentActivity() {
                     prefs.edit().putLong("target-serial", targetSerial).apply()
                 },
             )
+            }
         }
     }
     override fun onStart() {
@@ -143,6 +174,7 @@ open class MainActivity : ComponentActivity() {
     }
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent); setIntent(intent); receive(intent)
+        transit = compactEntry && (pendingForward || pendingStoreOpen)
         lifecycleScope.launch { lifecycle.withResumed { processPending() } }
     }
     override fun onStop() {
@@ -164,6 +196,7 @@ open class MainActivity : ComponentActivity() {
             if (target == null) {
                 debug("AUTO_FORWARD_TARGET_UNAVAILABLE")
                 message = R.string.profile_target_unavailable
+                transit = false
             } else sendToCopy(target)
         } else openPendingStore()
     }
@@ -183,6 +216,7 @@ open class MainActivity : ComponentActivity() {
                 storeAutoOpenEnabled() && link === selected && url == selected.original
             }
             debug(if (ok) "ACTIVITY_REQUEST_SUBMITTED" else "ACTIVITY_NOT_OPENED")
+            if (!ok) transit = false
             if (link === selected) {
                 if (ok) edit("")
                 linkError = if (ok) R.string.open_ok else R.string.store_open_failed
@@ -275,6 +309,7 @@ open class MainActivity : ComponentActivity() {
         }
         if (result == ProfileSendResult.SUBMITTED_UNKNOWN_OUTCOME || result == ProfileSendResult.UNKNOWN_OUTCOME) edit("")
         if (result == ProfileSendResult.SUBMITTED_UNKNOWN_OUTCOME && compactEntry) finish()
+        else transit = false
         refresh()
     }
     private fun edit(value: String) {

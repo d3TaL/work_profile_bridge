@@ -21,7 +21,7 @@ import dev.profilebridge.app.platform.ProfileAccess
 
 @Composable
 fun BridgeScreen(
-    targets: List<UserHandle>, message: Int?, device: String,
+    targets: List<UserHandle>, message: Int?, device: String, profileRole: String,
     url: String, linkError: Int?, handlers: List<LocalHandler>, refresh: () -> Unit,
     changeUrl: (String) -> Unit, inspect: () -> Unit, clear: () -> Unit,
     openCopy: (UserHandle) -> Unit, openHandler: (LocalHandler) -> Unit,
@@ -48,6 +48,7 @@ fun BridgeScreen(
                 Text(stringResource(R.string.title), style = MaterialTheme.typography.headlineSmall)
                 Text(stringResource(R.string.intro))
                 Text(device)
+                Text(profileRole)
                 Text(stringResource(R.string.profiles, targets.size))
                 Text(stringResource(R.string.profile_note))
                 Text(stringResource(when (profileAccess) {

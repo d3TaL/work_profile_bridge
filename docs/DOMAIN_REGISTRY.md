@@ -1,5 +1,25 @@
 # Реестр доменов приложений
 
+## Изменение 0.2.1
+
+Ниже исторические defaults 0.2.0. С 0.2.1 роль определяется публичными
+UserManager.isSystemUser/isManagedProfile. OTHER/UNKNOWN не автоконфигурируются;
+это не распознавание Knox или гарантированная идентификация Secure Folder.
+При первой настройке role-defaults-v1 main получает auto-forward=true,
+managed auto-open=true. Изменения пользователя сохраняют manual markers и
+не перезаписываются на последующих стартах. Старая 0.2.0 этих markers не имела:
+при миграции её старый false считается ещё не настроенным default.
+Compact остаётся false. В основной при отсутствии сохранённой цели выбирается
+только единственная доступная CrossProfileApps цель, сохраняется её serial.
+Автоматика по-прежнему требует allowlist/consent Android.
+
+Compact теперь использует translucent dialog без dim/preview/анимации окна;
+Compose UI не создаётся на pending auto-forward/auto-open, только при отказе
+или ручном режиме. RESUMED и TTL проверки сохраняются. Это уменьшение мерцания,
+не гарантия отсутствия Android splash/профильного перехода или разрешения BAL.
+При холодном старте manifest transit тема подавляет preview; launcher в onCreate
+выбирает обычную тему. Warm full-screen Activity не меняет тему автоматически.
+
 ## Ozon — ru.ozon.app.android
 
 Источник: два скриншота владельца из настроек Android «Поддерживаемые

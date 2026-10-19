@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 11
-        versionName = "0.2.0-auto-forward"
+        versionCode = 12
+        versionName = "0.2.1-profile-roles"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {
