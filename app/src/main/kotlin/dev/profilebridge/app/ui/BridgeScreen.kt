@@ -28,6 +28,7 @@ fun BridgeScreen(
     shareReport: (String) -> Unit,
     profileAccess: ProfileAccess, requestProfileAccess: () -> Unit, sendToCopy: (UserHandle) -> Unit,
     autoOpenStores: Boolean, setAutoOpenStores: (Boolean) -> Unit,
+    autoOpenShares: Boolean, setAutoOpenShares: (Boolean) -> Unit,
     debugEnabled: Boolean, setDebugEnabled: (Boolean) -> Unit, debugReport: String?,
     previewDebug: () -> Unit, dismissDebug: () -> Unit,
     autoForward: Boolean, setAutoForward: (Boolean) -> Unit,
@@ -87,6 +88,9 @@ fun BridgeScreen(
                 Text(stringResource(R.string.auto_open_stores))
                 Switch(checked = autoOpenStores, onCheckedChange = setAutoOpenStores)
                 Text(stringResource(R.string.auto_open_stores_note))
+                Text(stringResource(R.string.auto_open_shares))
+                Switch(checked = autoOpenShares, onCheckedChange = setAutoOpenShares)
+                Text(stringResource(R.string.auto_open_shares_note))
                 Button(onClick = inspect, enabled = url.isNotBlank()) { Text(stringResource(R.string.inspect)) }
                 OutlinedButton(onClick = clear) { Text(stringResource(R.string.clear)) }
                 linkError?.let { Text(stringResource(it)) }

@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 12
-        versionName = "0.2.1-profile-roles"
+        versionCode = 13
+        versionName = "0.2.2-knox-share"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {

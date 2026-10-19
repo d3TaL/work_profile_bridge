@@ -96,3 +96,13 @@ ProfileRole, BridgeScreen, manifest/themes. Публичные UserManager API, 
 service/FGS, incoming Intent forwarding или обхода lifecycle. Полный diff:
 `git diff 466a663..HEAD -- app`. Не обещается невидимый запуск: translucent Activity
 может влиять на BAL и требует теста на Samsung; при наблюдаемом отказе UI виден.
+# 0.2.2 — public share opt-in
+
+android-intent-security commit 5bda39f: расширение public SEND документировано
+как явно разрешённый локальный запуск из любого отправителя, не как доверенная
+доставка. Приоритет high: разделить границы доверия. Scope MainActivity,
+BridgeScreen, strings/version, StoreEntryPolicy и тест. Sanitizer/manifest
+permissions неизменны, protected TTL/replay не обходится новым opt-in.
+Core policy тестирует invalid protected ticket, opt-out, VIEW и manual route.
+Diff: `git diff 1a1d28c..HEAD -- app core`. Реальное Knox автооткрытие ожидает
+проверки владельца; AppOps не меняются.

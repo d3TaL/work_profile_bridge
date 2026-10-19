@@ -1,5 +1,20 @@
 # Реестр доменов приложений
 
+## Secure Folder через Sharesheet — 0.2.2
+
+Владелец подтвердил доставку через системное «Поделиться» в Bridge внутри Knox
+на 0.2.1; автооткрытия не было, поскольку public SEND допускал только ручной запуск.
+Добавлен независимый auto-open-share=false по умолчанию, без role defaults.
+Включать внутри целевого контейнера. Это разрешение локально открывать
+поддерживаемые адреса из любого ACTION_SEND: не аутентификация отправителя,
+не подтверждение реального выбора системного chooser и не Knox permission.
+VIEW этим режимом не разрешается. Если share opt-in включён, public SEND
+никогда не автопересылается, даже при auto-forward=true. Локальный share opt-in
+независим от защищённого auto-open. Protected endpoint не может использовать
+его для обхода ticket/TTL/replay. URL по-прежнему sanitizer + SafeLink + registry,
+новый package-scoped VIEW, receiver query вне main, RESUMED, no retries.
+На rotation/process death pending не восстанавливается. Compact применим.
+
 ## Изменение 0.2.1
 
 Ниже исторические defaults 0.2.0. С 0.2.1 роль определяется публичными

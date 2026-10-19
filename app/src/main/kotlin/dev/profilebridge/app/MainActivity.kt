@@ -36,6 +36,7 @@ import dev.profilebridge.app.ui.ProbeViewModel
 import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
 import dev.profilebridge.core.links.StoreLinks
+import dev.profilebridge.core.links.StoreEntryPolicy
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
 import kotlinx.coroutines.Dispatchers
@@ -57,6 +58,8 @@ open class MainActivity : ComponentActivity() {
     private var launchJob: Job? = null
     private var pendingStoreOpen = false
     private var autoOpenStores by mutableStateOf(false)
+    private var autoOpenShares by mutableStateOf(false)
+    private var pendingPublicShare = false
     private var autoForward by mutableStateOf(false)
     private var compactMode by mutableStateOf(false)
     private var targetSerial by mutableLongStateOf(-1L)
@@ -98,6 +101,7 @@ open class MainActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         if (!compactEntry) enableEdgeToEdge()
         autoOpenStores = storeAutoOpenEnabled()
+        autoOpenShares = prefs.getBoolean("auto-open-share", false)
         autoForward = prefs.getBoolean("auto-forward", false)
         compactMode = prefs.getBoolean("compact", false)
         targetSerial = prefs.getLong("target-serial", -1L)
@@ -128,6 +132,11 @@ open class MainActivity : ComponentActivity() {
                 },
                 sendToCopy = ::sendToCopy,
                 autoOpenStores = autoOpenStores,
+                autoOpenShares = autoOpenShares,
+                setAutoOpenShares = { enabled ->
+                    autoOpenShares = enabled
+                    prefs.edit().putBoolean("auto-open-share", enabled).apply()
+                },
                 setAutoOpenStores = { enabled ->
                     autoOpenStores = enabled
                     getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("auto-open", enabled)
@@ -186,6 +195,10 @@ open class MainActivity : ComponentActivity() {
     private fun storeAutoOpenEnabled() =
         getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open", false)
 
+    private fun pendingOpenAuthorized() = if (pendingPublicShare)
+        getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open-share", false)
+        else storeAutoOpenEnabled()
+
     private fun serial(target: UserHandle): Long =
         getSystemService(UserManager::class.java).getSerialNumberForUser(target)
 
@@ -204,7 +217,7 @@ open class MainActivity : ComponentActivity() {
     private fun openPendingStore() {
         if (!pendingStoreOpen || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
         pendingStoreOpen = false
-        if (!storeAutoOpenEnabled()) return
+        if (!pendingOpenAuthorized()) { transit = false; return }
         val selected = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link ?: return
         val target = StoreLinks.target(selected) ?: return
         debug("AUTO_OPEN_ATTEMPT")
@@ -213,7 +226,7 @@ open class MainActivity : ComponentActivity() {
         val handler = LocalHandler(target)
         launchJob = lifecycleScope.launch {
             val ok = LocalLinkLauncher.open(this@MainActivity, selected, handler) {
-                storeAutoOpenEnabled() && link === selected && url == selected.original
+                pendingOpenAuthorized() && link === selected && url == selected.original
             }
             debug(if (ok) "ACTIVITY_REQUEST_SUBMITTED" else "ACTIVITY_NOT_OPENED")
             if (!ok) transit = false
@@ -267,6 +280,7 @@ open class MainActivity : ComponentActivity() {
         pendingStoreOpen = false
         pendingForward = false
         launchJob?.cancel()
+        pendingPublicShare = false
         setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
         if (value != null) {
             edit("")
@@ -276,15 +290,19 @@ open class MainActivity : ComponentActivity() {
                 val parsed = (SafeLink.parse(extracted) as LinkParseResult.Accepted).link
                 val supported = StoreLinks.target(parsed) != null
                 val delivery = trustedStoreEntry && incoming.action == Intent.ACTION_SEND && StoreDelivery.consume(this, incoming)
-                pendingStoreOpen = delivery && storeAutoOpenEnabled() && supported
+                val isSend = incoming.action == Intent.ACTION_SEND
+                pendingPublicShare = !trustedStoreEntry && isSend && autoOpenShares
+                pendingStoreOpen = StoreEntryPolicy.mayOpen(trustedStoreEntry, delivery, isSend,
+                    storeAutoOpenEnabled(), autoOpenShares, supported)
                 debug(when {
+                    pendingStoreOpen && pendingPublicShare -> "PUBLIC_SHARE_AUTO_OPEN_PENDING"
                     !trustedStoreEntry -> "PUBLIC_MANUAL_ENTRY"
                     !delivery -> "DELIVERY_REJECTED"
                     !storeAutoOpenEnabled() -> "AUTO_OPEN_DISABLED"
                     !supported -> "ROUTE_MANUAL_ONLY"
                     else -> "AUTO_OPEN_PENDING"
                 })
-                pendingForward = !trustedStoreEntry && autoForward && supported
+                pendingForward = !trustedStoreEntry && !pendingPublicShare && autoForward && supported
                 if (pendingForward) debug("AUTO_FORWARD_PENDING")
                 debug(if (supported)
                     "SHOP_ROUTE_SUPPORTED" else "SHOP_ROUTE_UNSUPPORTED")
