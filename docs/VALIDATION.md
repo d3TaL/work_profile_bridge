@@ -1,5 +1,28 @@
 # Проверки восстановленной версии
 
+## 0.2.2-knox-share — 2026-10-19
+
+- Владелец подтвердил системный Sharesheet → Bridge внутри Secure Folder:
+  ссылка доходит на 0.2.1, но public entry автоматически магазин не открывает.
+- Добавлен independent auto-open-share opt-in (default false). Только public
+  SEND, local package-scoped shop VIEW, без автоforward; protected entry
+  по-прежнему требует ticket и protected opt-in. Подробнее DOMAIN_REGISTRY.md.
+- APK commit `8af1447`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39210109410 — SUCCESS.
+- Скачанные XML: 31 JVM tests, 0 failures/errors/skipped; lint Debug/Release
+  0 issues. Assemble Debug/Release PASS, strict verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.2.2-knox-share-8af1447.apk`.
+- SHA-256 `4aa21327c90eba6c5cb1a47c6aa4026fb29df53380b4d4a0dcee63cdc12aa4e7`.
+  Оригиналы `run-39210109410/profile-bridge-apks-19/`, оба SHA256SUMS OK.
+- apksig 9.4.1 verified=true errors=[]; signer SHA-256
+  `02981f4b85bff545f43627da22b61f171b5938bff6b0fb3748b964216815b5b1`.
+  Подпись отличается от 0.2.1, требуется решение владельца о переустановке
+  только Bridge. Установка агентом не выполнялась, политики не менялись.
+- Device test ожидается: внутри Knox включить auto-open-share, по желанию
+  compact и debug, выйти Назад, снаружи Share → Secure Folder Bridge.
+  Ожидается PUBLIC_SHARE_AUTO_OPEN_PENDING → AUTO_OPEN_ATTEMPT → результат.
+  Проверить OFF/manual, повтор cold/warm, отсутствие магазина, rotation.
+  Фактическое открытие Ozon этой версией пока не подтверждено.
+
 ## Knox: проверка разрешений через ADB — 2026-10-19
 
 Владелец подтвердил работоспособность 0.2.1, сообщил: копии видны из Secure
