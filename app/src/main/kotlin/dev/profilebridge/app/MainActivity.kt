@@ -139,7 +139,10 @@ open class MainActivity : ComponentActivity() {
                     if (compactEntry) finish()
                 }
             } else if (showSetup) {
-                SetupScreen(role = roleLabel(), count = targets.size,
+                SetupScreen(role = roleLabel(), targets = targets,
+                    main = role == ProfileRole.MAIN, managed = role == ProfileRole.MANAGED,
+                    selectedTarget = targets.firstOrNull { serial(it) == targetSerial }, shareRoute = shareRoute,
+                    applyPreset = ::applyPreset,
                     samsung = Build.MANUFACTURER.equals("samsung", true), access = profileAccess,
                     refresh = ::refresh, requestAccess = ::requestAccess,
                     done = {
@@ -235,12 +238,40 @@ open class MainActivity : ComponentActivity() {
     private fun storeAutoOpenEnabled() =
         getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open", false)
 
-    private fun roleLabel() = getString(when (role) {
+    private fun roleLabel() = if (getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("knox-label", false))
+        getString(R.string.role_knox_manual) else getString(when (role) {
         ProfileRole.MAIN -> R.string.role_main
         ProfileRole.MANAGED -> R.string.role_managed
         ProfileRole.OTHER -> R.string.role_other
         ProfileRole.UNKNOWN -> R.string.role_unknown
     })
+
+    private fun applyPreset(preset: Int, target: UserHandle?) {
+        val prefs = getSharedPreferences("store-routing", MODE_PRIVATE)
+        if (preset == 1 && (target == null || target !in ProfileDiagnostics.targets(this))) {
+            message = R.string.profile_target_unavailable
+            refresh()
+            return
+        }
+        if (preset !in 1..5) return
+        // Presets are applied only by an explicit button, never by incoming text.
+        autoForward = preset == 1 || preset == 2
+        shareRoute = preset == 2
+        autoOpenStores = preset == 3
+        autoOpenShares = preset == 4
+        val edit = prefs.edit().putBoolean("auto-forward", autoForward)
+            .putBoolean("share-route", shareRoute).putBoolean("auto-open", autoOpenStores)
+            .putBoolean("auto-open-share", autoOpenShares)
+            .putBoolean("forward-manual", true).putBoolean("open-manual", true)
+            .putBoolean("knox-label", preset == 4)
+        if (preset == 1 && target != null) {
+            targetSerial = serial(target)
+            edit.putLong("target-serial", targetSerial)
+        }
+        edit.apply()
+        showSetup = false
+        prefs.edit().putBoolean("setup-intro-done", true).apply()
+    }
 
     private fun requestAccess() {
         message = if (ProfileDiagnostics.requestAccess(this)) R.string.profile_settings_opened

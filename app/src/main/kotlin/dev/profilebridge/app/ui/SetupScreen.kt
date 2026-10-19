@@ -15,6 +15,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import android.os.UserHandle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -23,8 +28,11 @@ import dev.profilebridge.app.platform.ProfileAccess
 
 /** Informational first setup step; discovery is not evidence of delivery. */
 @Composable
-fun SetupScreen(role: String, count: Int, samsung: Boolean, access: ProfileAccess,
+fun SetupScreen(role: String, targets: List<UserHandle>, samsung: Boolean, access: ProfileAccess,
+                main: Boolean, managed: Boolean, selectedTarget: UserHandle?, shareRoute: Boolean,
+                applyPreset: (Int, UserHandle?) -> Unit,
                 refresh: () -> Unit, requestAccess: () -> Unit, done: () -> Unit) {
+    var choice by rememberSaveable { mutableIntStateOf(0) }
     MaterialTheme {
         Scaffold { insets ->
             Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(24.dp),
@@ -38,7 +46,7 @@ fun SetupScreen(role: String, count: Int, samsung: Boolean, access: ProfileAcces
                         Text(stringResource(R.string.setup_detect_note))
                     }
                 }
-                Text(stringResource(R.string.setup_copies, count), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.setup_copies, targets.size), style = MaterialTheme.typography.titleMedium)
                 Text(stringResource(R.string.setup_copies_note))
                 OutlinedButton(onClick = refresh) { Text(stringResource(R.string.refresh)) }
                 Text(stringResource(R.string.setup_clone), style = MaterialTheme.typography.titleMedium)
@@ -57,6 +65,41 @@ fun SetupScreen(role: String, count: Int, samsung: Boolean, access: ProfileAcces
                     Text(stringResource(R.string.profile_request_access))
                 }
                 Text(stringResource(R.string.setup_finish_note))
+                Text(stringResource(R.string.preset_title), style = MaterialTheme.typography.titleLarge)
+                if (main) {
+                    Text(stringResource(R.string.preset_sender_note))
+                    Text(stringResource(if (shareRoute) R.string.preset_current_knox else R.string.preset_current_direct))
+                    targets.forEachIndexed { index, target ->
+                        OutlinedButton(onClick = { applyPreset(1, target) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(if (target == selectedTarget && !shareRoute)
+                                R.string.preset_direct_selected else R.string.preset_direct, index + 1))
+                        }
+                    }
+                    if (targets.isEmpty()) Text(stringResource(R.string.preset_no_target))
+                    if (samsung) {
+                        Text(stringResource(R.string.preset_knox_sender_note))
+                        Button(onClick = { applyPreset(2, null) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.preset_knox_sender))
+                        }
+                    }
+                } else {
+                    if (managed) {
+                        Text(stringResource(R.string.preset_work_note))
+                        Button(onClick = { applyPreset(3, null) }) { Text(stringResource(R.string.preset_work)) }
+                    }
+                    if (samsung) {
+                        OutlinedButton(onClick = { choice = if (choice == 4) 0 else 4 }) {
+                            Text(stringResource(R.string.preset_knox_receiver))
+                        }
+                        if (choice == 4) {
+                            Text(stringResource(R.string.preset_knox_receiver_note))
+                            Button(onClick = { applyPreset(4, null); choice = 0 }) {
+                                Text(stringResource(R.string.preset_apply))
+                            }
+                        }
+                    }
+                }
+                OutlinedButton(onClick = { applyPreset(5, null) }) { Text(stringResource(R.string.preset_manual)) }
                 Button(onClick = done, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.setup_continue)) }
             }
         }

@@ -1,5 +1,16 @@
 # Порционный UX выпуск
 
+## Порция 3a — 0.3.3: назначения и пресеты
+
+Main: выбор конкретного target или Knox Sharesheet, включает auto-forward,
+отключает local auto-open. Managed: receiver preset включает protected open,
+выключает forward/public open. Samsung не-main: ручное подтверждение Knox и
+public share согласия, включает только local public open. Manual выключает
+всю routing автоматику. Compact/debug не меняются. Применение явной кнопкой,
+ручные markers сохраняются; при refresh route не подменяется. Remote target
+назван копией, не доказанным work profile. Метка Knox не системная детекция.
+Полный мастер, системные app-link настройки, групповые правила и банки ещё впереди.
+
 ## Порция 1 — 0.3.0: введение в настройку
 
 Первый launcher старт показывает SetupScreen, карточку текущей роли Android,
