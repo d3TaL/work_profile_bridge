@@ -37,7 +37,7 @@ object ProfileDiagnostics {
 
     /** One user-triggered attempt. Return from framework is not a receiver ACK. No retries. */
     fun send(activity: Activity, target: UserHandle, text: String): ProfileSendResult {
-        val parsed = SafeLink.parse(text)
+        val parsed = SafeLink.parseRouting(text)
         if (parsed !is LinkParseResult.Accepted) return ProfileSendResult.INVALID_LINK
         return try {
             val api = activity.getSystemService(CrossProfileApps::class.java)

@@ -7,6 +7,7 @@ import androidx.core.content.IntentSanitizer
 import dev.profilebridge.app.MainActivity
 import dev.profilebridge.app.StoreReceiveActivity
 import dev.profilebridge.core.links.SafeLink
+import dev.profilebridge.core.links.BankLinks
 
 object IncomingLinkReader {
     const val SHARE_ONCE = "dev.profilebridge.app.SHARE_ONCE"
@@ -25,7 +26,7 @@ object IncomingLinkReader {
             .allowAction(Intent.ACTION_MAIN).allowAction(Intent.ACTION_SEND).allowAction(Intent.ACTION_VIEW)
             .allowCategory(Intent.CATEGORY_LAUNCHER).allowCategory(Intent.CATEGORY_DEFAULT)
             .allowCategory(Intent.CATEGORY_BROWSABLE).allowType("text/plain")
-            .allowData { it.scheme.equals("https", true) }
+            .allowData { it.scheme.equals("https", true) || it.scheme.equals(BankLinks.T_BANK_SCHEME, true) }
             .allowExtra(Intent.EXTRA_TEXT, CharSequence::class.java)
             .build().sanitizeByFiltering(incoming)
         when (safe.action) {

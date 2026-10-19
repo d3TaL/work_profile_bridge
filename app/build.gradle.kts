@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 21
-        versionName = "0.3.6-tbank-manual"
+        versionCode = 22
+        versionName = "0.3.7-tbank-scheme"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {

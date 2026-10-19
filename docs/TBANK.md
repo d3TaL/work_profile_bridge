@@ -1,5 +1,21 @@
 # Первый банковский маршрут
 
+## 0.3.7 — схема оплаты
+
+Read-only ADB фиксировал ACTION_VIEW bank100000000004 из
+by.advasoft.android.troika.app после выбора Т-Банка владельцем. Полные data
+не выводились/не сохранялись. Это не сверка manifest установленной банковской
+копии: runtime package-scoped query проверит обработку у получателя.
+
+SafeLink.parse остаётся HTTPS-only. Явный parseRouting принимает дополнительно
+только bank100000000004 hierarchical URI с host, без userinfo/port/fragment.
+Path/query сохраняются raw, не трактуются как проверенные реквизиты платежа.
+Размер/control/Unicode ограничения сохраняются. Сбер и intent:// не поддержаны.
+Manifest отдельный VIEW filter. SEND только полная банковская ссылка.
+Передача новым text/plain SEND, local запуск новым package-scoped VIEW после
+жеста и RESUMED. BankLinks исключён из StoreLinks.target, автоматика не применяется.
+URL не попадает в TLS/report/state/retry. Реальный платёж и возврат не проверены.
+
 Т-Банк package `com.idamob.tinkoff.android`: карточка АО «ТБанк»
 https://www.rustore.ru/catalog/app/com.idamob.tinkoff.android проверена 2026-10-19.
 ADB отключён: пакет установленной копии и подпись банка на устройстве не сверены.

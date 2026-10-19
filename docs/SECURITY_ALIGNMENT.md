@@ -124,3 +124,13 @@ Scope MainActivity, SetupScreen, BridgeScreen, strings/version. Новый эк�
 только boolean видимости мастера; ссылка не сохраняется. Входящие cold/warm
 по-прежнему обрабатываются IncomingLinkReader, не ждут прохождения мастера.
 Diff: `git diff 8b65065..HEAD -- app`. Политика ссылок/платежей неизменна.
+# 0.3.7 — ограниченная банковская схема
+
+MainActivity cold/warm: IncomingLinkReader/IntentSanitizer разрешает только
+HTTPS и bank100000000004, далее parseRouting. HTTPS parse не расширен.
+Scope SafeLink/BankLinks/StoreLinks, MainActivity, IncomingLinkReader,
+ProfileDiagnostics, manifest, strings/version и BankLinksTest. Новый VIEW
+пакет-ограниченный, RESUMED/жест, incoming flags/extras/grants не копируются.
+Signature permission неизменна. Тесты: raw preservation, отказ других схем,
+opaque/userinfo/port/fragment, запрет shop auto-open. Diff:
+`git diff 04f0573..HEAD -- app core`. Совместимость и callback требуют телефона.

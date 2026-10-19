@@ -328,7 +328,7 @@ open class MainActivity : ComponentActivity() {
         if (!pendingStoreOpen || !lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
         pendingStoreOpen = false
         if (!pendingOpenAuthorized()) { transit = false; return }
-        val selected = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link ?: return
+        val selected = (SafeLink.parseRouting(url) as? LinkParseResult.Accepted)?.link ?: return
         val target = StoreLinks.target(selected) ?: return
         debug("AUTO_OPEN_ATTEMPT")
         launchJob?.cancel()
@@ -385,7 +385,7 @@ open class MainActivity : ComponentActivity() {
         }
     }
     private fun shareLink() {
-        val selected = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link
+        val selected = (SafeLink.parseRouting(url) as? LinkParseResult.Accepted)?.link
         if (selected == null || StoreLinks.packageFor(selected) == null) {
             message = R.string.invalid_url
             transit = false
@@ -446,9 +446,9 @@ open class MainActivity : ComponentActivity() {
         if (value != null) {
             edit("")
             val extracted = if (incoming.action == Intent.ACTION_SEND) StoreLinks.fromShareText(value) else value
-            if (extracted != null && SafeLink.parse(extracted) is LinkParseResult.Accepted) {
+            if (extracted != null && SafeLink.parseRouting(extracted) is LinkParseResult.Accepted) {
                 edit(extracted)
-                val parsed = (SafeLink.parse(extracted) as LinkParseResult.Accepted).link
+                val parsed = (SafeLink.parseRouting(extracted) as LinkParseResult.Accepted).link
                 val supported = StoreLinks.target(parsed) != null && allowed(parsed, true)
                 val delivery = trustedStoreEntry && incoming.action == Intent.ACTION_SEND && StoreDelivery.consume(this, incoming)
                 val isSend = incoming.action == Intent.ACTION_SEND
@@ -477,7 +477,7 @@ open class MainActivity : ComponentActivity() {
         profileAccess = ProfileDiagnostics.access(this)
     }
     private fun sendToCopy(target: UserHandle) {
-        val parsed = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link
+        val parsed = (SafeLink.parseRouting(url) as? LinkParseResult.Accepted)?.link
         if (parsed != null && !allowed(parsed, false)) { message = R.string.apps_blocked; transit = false; return }
         val result = ProfileDiagnostics.send(this, target, url)
         debug("SEND_${result.name}")
@@ -503,7 +503,7 @@ open class MainActivity : ComponentActivity() {
     }
     private fun inspect() {
         queryJob?.cancel()
-        val parsed = SafeLink.parse(url)
+        val parsed = SafeLink.parseRouting(url)
         if (parsed !is LinkParseResult.Accepted) { linkError = R.string.invalid_url; return }
         val selected = parsed.link
         queryJob = lifecycleScope.launch {

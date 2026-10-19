@@ -41,7 +41,7 @@ object StoreLinks {
     /** Share text may contain a title, but never silently pick among multiple URLs. */
     fun fromShareText(text: String): String? {
         if (text.length > SafeLink.MAX_BYTES || text.toByteArray(Charsets.UTF_8).size > SafeLink.MAX_BYTES) return null
-        if (SafeLink.parse(text) is LinkParseResult.Accepted) return text
+        if (SafeLink.parseRouting(text) is LinkParseResult.Accepted) return text
         val candidates = Regex("https://[^\\s<>\"']+", RegexOption.IGNORE_CASE).findAll(text).take(2).toList()
         if (candidates.size != 1) return null
         val value = candidates.single().value
