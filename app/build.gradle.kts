@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 23
-        versionName = "0.3.8-bank-registry"
+        versionCode = 24
+        versionName = "0.3.9-ozon-bank-handler"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {

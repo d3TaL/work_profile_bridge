@@ -23,6 +23,12 @@ object BankLinks {
     )
     fun isScheme(scheme: String?): Boolean = banks.any { it.scheme.equals(scheme, true) }
     fun isPackage(pkg: String): Boolean = banks.any { it.packageName == pkg }
+    /** Payment policy remains keyed to the bank, even when the shop handles its URI. */
+    fun handlerPackages(link: SafeLink): List<String> {
+        val primary = target(link) ?: return emptyList()
+        return if (link.scheme == "bank100000000273") listOf(primary, "ru.ozon.app.android")
+            else listOf(primary)
+    }
     val hosts = setOf("www.ob-tb.ru", "t-calls.ru", "id.srv-hub.org", "ipa.srv-hub.org",
         "b.tbao.su", "www.tbank.ru", "tbank.ru", "tt.ru")
     fun target(link: SafeLink): String? = banks.firstOrNull { it.scheme == link.scheme }?.packageName

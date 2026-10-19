@@ -509,7 +509,10 @@ open class MainActivity : ComponentActivity() {
         val selected = parsed.link
         queryJob = lifecycleScope.launch {
             val found = withContext(Dispatchers.IO) {
-                LocalLinkLauncher.handlers(this@MainActivity, selected, BankLinks.target(selected))
+                val bankPackages = BankLinks.handlerPackages(selected)
+                if (bankPackages.isEmpty()) LocalLinkLauncher.handlers(this@MainActivity, selected)
+                else bankPackages.flatMap { pkg -> LocalLinkLauncher.handlers(this@MainActivity, selected, pkg) }
+                    .distinctBy { it.packageName }
             }
             link = selected; handlers = found
             linkError = if (found.isEmpty()) R.string.no_handler else null

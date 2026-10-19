@@ -4,6 +4,14 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class BankLinksTest {
+    @Test fun `ozon payment allows bank and shop without changing payment policy`() {
+        val link = (SafeLink.parseRouting("bank100000000273://qr.nspk.ru/TEST_ONLY") as LinkParseResult.Accepted).link
+        assertEquals(listOf("ru.ozon.fintech.finance", "ru.ozon.app.android"), BankLinks.handlerPackages(link))
+        assertEquals("ru.ozon.fintech.finance", StoreLinks.packageFor(link))
+        assertNull(StoreLinks.target(link))
+        val other = (SafeLink.parseRouting("bank100000000004://qr.nspk.ru/TEST_ONLY") as LinkParseResult.Accepted).link
+        assertEquals(listOf(BankLinks.T_BANK), BankLinks.handlerPackages(other))
+    }
     @Test fun `payment scheme is explicit raw preserving and never automatic`() {
         val raw = "bank100000000004://qr.nspk.ru/TEST_ONLY?type=02&x=%2F"
         assertTrue(SafeLink.parse(raw) is LinkParseResult.Rejected)
