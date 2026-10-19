@@ -67,3 +67,23 @@ Device test отдельно: отказ без consent, возврат из н�
 Полный unified diff текущих текстовых исходников относительно пустой базы: [security-recovery.patch](security-recovery.patch). Проверки — [VALIDATION.md](VALIDATION.md).
 
 Риски, которые остаются: подмена out-of-band кода; отсутствие долгосрочного сопряжения/отзыва и mTLS; не проверенный Samsung AndroidKeyStore/Conscrypt путь; отсутствие URL delivery state machine и политики получателя. Локальная диагностика не запускает банк через сеть. Перед настоящими банковскими ссылками требуется отдельный review.
+# 0.2.0 — opt-in автоматизация
+
+Прочитан android-intent-security SKILL.md из android/skills commit
+5bda39f154fb859a08d45e2392f3568e049f83fb (metadata 2026-09-25).
+Область: безопасная маршрутизация Intent, priority high. Новых permissions,
+services, providers, nested Intent и зависимостей нет. MainActivity cold/warm
+применяет один IncomingLinkReader/IntentSanitizer; исходный Intent не запускается.
+ProfileDiagnostics строит новый explicit SEND своей signature-protected копии,
+LocalLinkLauncher — новый package-scoped VIEW после проверки RESUMED/обработчика.
+Автопередача только opt-in, в сохранённый serial профиля, разово; защищённый
+получатель не делает обратный forward. TTL/replay проверяются до auto-open.
+URL не пишется в preferences/saved state/report. Доменный реестр точный,
+не wildcard; непрозрачные ссылки не выдаются за проверенные страницы товаров.
+
+Scope: MainActivity, BridgeScreen, ProfileDiagnostics, StoreLinks/StoreLinksTest,
+AndroidManifest, themes/strings, app version, DOMAIN_REGISTRY и release docs.
+Точный unified diff выпуска: `git diff b13d65d..HEAD -- app core`.
+Проверки: CI core:test, lintDebug/Release, assembleDebug/Release; device cold/warm,
+пауза/исчезновение выбранного профиля, отсутствие магазина, rotation и циклы
+ожидают владельца. Компактная Activity не является обходом BAL.

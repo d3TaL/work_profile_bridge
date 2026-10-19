@@ -43,6 +43,24 @@
                 <data android:host="ozon.ru" />
                 <data android:host="www.ozon.ru" />
                 <data android:host="m.ozon.ru" />
+                <data android:host="f.ozon.ru" />
+                <data android:host="checkout.ozon.ru" />
+                <data android:host="ozon.by" />
+                <data android:host="www.ozon.by" />
+                <data android:host="ozon.kz" />
+                <data android:host="www.ozon.kz" />
+                <data android:host="ozon.tm" />
+                <data android:host="www.ozon.tm" />
+                <data android:host="www.ozon.uz" />
+                <data android:host="ozon.com" />
+                <data android:host="www.ozon.com" />
+                <data android:host="mn.ozon.com" />
+                <data android:host="am.ozon.com" />
+                <data android:host="ozon.app.link" />
+                <data android:host="ozon-alternate.app.link" />
+                <data android:host="ozon.test-app.link" />
+                <data android:host="ozon-alternate.test-app.link" />
+                <data android:host="ozon.onelink.me" />
                 <data android:host="wildberries.ru" />
                 <data android:host="www.wildberries.ru" />
             </intent-filter>

@@ -45,7 +45,7 @@ object ProfileDiagnostics {
             if (!api.canInteractAcrossProfiles()) return ProfileSendResult.ACCESS_DENIED
             // Never forward the incoming Intent, flags, ClipData, grants or extra fields.
             val outgoing = Intent(Intent.ACTION_SEND).apply {
-                component = ComponentName(activity, if (StoreLinks.target(parsed.link) != null)
+                component = ComponentName(activity, if (StoreLinks.packageFor(parsed.link) != null)
                     StoreReceiveActivity::class.java else MainActivity::class.java)
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, parsed.link.original)

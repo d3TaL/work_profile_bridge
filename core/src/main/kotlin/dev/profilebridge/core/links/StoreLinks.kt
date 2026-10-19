@@ -2,24 +2,39 @@ package dev.profilebridge.core.links
 
 /** Exact public shop hosts only. No arbitrary subdomains, payments or redirect resolution. */
 object StoreLinks {
-    private val packages = mapOf(
-        "ozon.ru" to "ru.ozon.app.android",
-        "www.ozon.ru" to "ru.ozon.app.android",
-        "m.ozon.ru" to "ru.ozon.app.android",
+    val ozonHosts: Set<String> = setOf(
+        "ozon.ru", "www.ozon.ru", "m.ozon.ru", "f.ozon.ru", "checkout.ozon.ru",
+        "ozon.by", "www.ozon.by", "ozon.kz", "www.ozon.kz", "ozon.tm", "www.ozon.tm",
+        "www.ozon.uz", "ozon.com", "www.ozon.com", "mn.ozon.com", "am.ozon.com",
+        "ozon.app.link", "ozon-alternate.app.link", "ozon.test-app.link",
+        "ozon-alternate.test-app.link", "ozon.onelink.me",
+    )
+    private val manualOzonHosts = setOf(
+        "checkout.ozon.ru", "ozon.test-app.link", "ozon-alternate.test-app.link",
+    )
+    private val packages = ozonHosts.associateWith { "ru.ozon.app.android" } + mapOf(
         "wildberries.ru" to "com.wildberries.ru",
         "www.wildberries.ru" to "com.wildberries.ru",
     )
 
-    fun target(link: SafeLink): String? = packages[link.host]?.takeIf {
-        // Short-link destinations are opaque: pass only this exact shape to the shop,
-        // without fetching redirects or claiming its destination is a product.
-        (link.rawPath.isEmpty() || link.rawPath == "/") &&
-            !link.original.contains('?') && !link.original.contains('#') ||
-            link.host.endsWith("ozon.ru") && link.rawPath.startsWith("/product/") ||
-            link.host == "ozon.ru" && link.rawPath.matches(Regex("/t/[A-Za-z0-9]+")) &&
+    /** Recognition is independent of permission to launch automatically. */
+    fun packageFor(link: SafeLink): String? = packages[link.host]
+
+    fun target(link: SafeLink): String? {
+        val pkg = packageFor(link) ?: return null
+        if (link.host in ozonHosts) {
+            // Best-effort direct payment/account exclusion, not destination verification.
+            // Opaque short links and query parameters are interpreted only by Ozon.
+            val segment = link.rawPath.trimStart('/').substringBefore('/').lowercase()
+            if (link.host in manualOzonHosts || '%' in link.rawPath ||
+                segment in setOf("pay", "payment", "payments", "checkout", "bank", "account")) return null
+            return pkg
+        }
+        return pkg.takeIf {
+            (link.rawPath.isEmpty() || link.rawPath == "/") &&
                 !link.original.contains('?') && !link.original.contains('#') ||
-            link.host.endsWith("wildberries.ru") &&
-            link.rawPath.matches(Regex("/catalog/[0-9]+/detail\\.aspx"))
+                link.rawPath.matches(Regex("/catalog/[0-9]+/detail\\.aspx"))
+        }
     }
 
     /** Share text may contain a title, but never silently pick among multiple URLs. */
@@ -30,6 +45,6 @@ object StoreLinks {
         if (candidates.size != 1) return null
         val value = candidates.single().value
         val parsed = SafeLink.parse(value) as? LinkParseResult.Accepted ?: return null
-        return value.takeIf { target(parsed.link) != null }
+        return value.takeIf { packageFor(parsed.link) != null }
     }
 }

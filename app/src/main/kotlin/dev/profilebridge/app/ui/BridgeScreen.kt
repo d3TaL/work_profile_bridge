@@ -30,6 +30,9 @@ fun BridgeScreen(
     autoOpenStores: Boolean, setAutoOpenStores: (Boolean) -> Unit,
     debugEnabled: Boolean, setDebugEnabled: (Boolean) -> Unit, debugReport: String?,
     previewDebug: () -> Unit, dismissDebug: () -> Unit,
+    autoForward: Boolean, setAutoForward: (Boolean) -> Unit,
+    compactMode: Boolean, setCompactMode: (Boolean) -> Unit,
+    selectedTarget: UserHandle?, selectTarget: (UserHandle) -> Unit,
 ) {
     MaterialTheme {
         debugReport?.let { report ->
@@ -59,7 +62,16 @@ fun BridgeScreen(
                 }
                 targets.forEachIndexed { index, handle ->
                     OutlinedButton(onClick = { openCopy(handle) }) { Text(stringResource(R.string.open_copy, index + 1)) }
+                    OutlinedButton(onClick = { selectTarget(handle) }) {
+                        Text(stringResource(if (selectedTarget == handle) R.string.auto_target_selected else R.string.auto_target, index + 1))
+                    }
                 }
+                Text(stringResource(R.string.auto_forward))
+                Switch(checked = autoForward, onCheckedChange = setAutoForward)
+                Text(stringResource(R.string.auto_forward_note))
+                Text(stringResource(R.string.compact_mode))
+                Switch(checked = compactMode, onCheckedChange = setCompactMode)
+                Text(stringResource(R.string.compact_note))
                 message?.let { Text(stringResource(it)) }
                 Text(stringResource(R.string.link_title), style = MaterialTheme.typography.titleMedium)
                 OutlinedTextField(value = url, onValueChange = changeUrl, modifier = Modifier.fillMaxWidth(), singleLine = true,

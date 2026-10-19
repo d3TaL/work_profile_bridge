@@ -2,4 +2,9 @@
     <style name="Theme.ProfileBridge" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">sans</item>
     </style>
+    <style name="Theme.ProfileBridge.Compact" parent="android:style/Theme.Material.Light.Dialog.NoActionBar">
+        <item name="android:windowMinWidthMajor">85%</item>
+        <item name="android:windowMinWidthMinor">85%</item>
+        <item name="android:windowCloseOnTouchOutside">false</item>
+    </style>
 </resources>
