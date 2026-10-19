@@ -32,6 +32,7 @@ fun BridgeScreen(
     debugEnabled: Boolean, setDebugEnabled: (Boolean) -> Unit, debugReport: String?,
     previewDebug: () -> Unit, dismissDebug: () -> Unit,
     autoForward: Boolean, setAutoForward: (Boolean) -> Unit,
+    shareRoute: Boolean, setShareRoute: (Boolean) -> Unit, shareLink: () -> Unit,
     compactMode: Boolean, setCompactMode: (Boolean) -> Unit,
     selectedTarget: UserHandle?, selectTarget: (UserHandle) -> Unit,
 ) {
@@ -71,6 +72,9 @@ fun BridgeScreen(
                 Text(stringResource(R.string.auto_forward))
                 Switch(checked = autoForward, onCheckedChange = setAutoForward)
                 Text(stringResource(R.string.auto_forward_note))
+                Text(stringResource(R.string.share_route))
+                Switch(checked = shareRoute, onCheckedChange = setShareRoute)
+                Text(stringResource(R.string.share_route_note))
                 Text(stringResource(R.string.compact_mode))
                 Switch(checked = compactMode, onCheckedChange = setCompactMode)
                 Text(stringResource(R.string.compact_note))
@@ -80,6 +84,9 @@ fun BridgeScreen(
                     label = { Text(stringResource(R.string.url)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false))
                 Text(stringResource(R.string.profile_send_note))
+                OutlinedButton(onClick = shareLink, enabled = url.isNotBlank()) {
+                    Text(stringResource(R.string.share_link_title))
+                }
                 targets.forEachIndexed { index, target ->
                     Button(onClick = { sendToCopy(target) }, enabled = url.isNotBlank()) {
                         Text(stringResource(R.string.profile_send, index + 1))

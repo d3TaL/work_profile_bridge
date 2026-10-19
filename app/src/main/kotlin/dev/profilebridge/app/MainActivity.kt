@@ -61,6 +61,7 @@ open class MainActivity : ComponentActivity() {
     private var autoOpenShares by mutableStateOf(false)
     private var pendingPublicShare = false
     private var autoForward by mutableStateOf(false)
+    private var shareRoute by mutableStateOf(false)
     private var compactMode by mutableStateOf(false)
     private var targetSerial by mutableLongStateOf(-1L)
     private var role = ProfileRole.UNKNOWN
@@ -103,6 +104,7 @@ open class MainActivity : ComponentActivity() {
         autoOpenStores = storeAutoOpenEnabled()
         autoOpenShares = prefs.getBoolean("auto-open-share", false)
         autoForward = prefs.getBoolean("auto-forward", false)
+        shareRoute = prefs.getBoolean("share-route", false)
         compactMode = prefs.getBoolean("compact", false)
         targetSerial = prefs.getLong("target-serial", -1L)
         debugEnabled = getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("debug", false)
@@ -151,6 +153,12 @@ open class MainActivity : ComponentActivity() {
                 previewDebug = { debugReport = "Profile Bridge ${BuildConfig.VERSION_NAME}\n" + debugEvents.joinToString("\n") },
                 dismissDebug = { debugReport = null },
                 autoForward = autoForward,
+                shareRoute = shareRoute,
+                setShareRoute = { enabled ->
+                    shareRoute = enabled
+                    prefs.edit().putBoolean("share-route", enabled).apply()
+                },
+                shareLink = ::shareLink,
                 setAutoForward = { enabled ->
                     autoForward = enabled
                     prefs.edit().putBoolean("auto-forward", enabled).putBoolean("forward-manual", true).apply()
@@ -205,6 +213,7 @@ open class MainActivity : ComponentActivity() {
     private fun processPending() {
         if (pendingForward) {
             pendingForward = false // one attempt; no resume/rotation retries
+            if (shareRoute) { shareLink(); return }
             val target = ProfileDiagnostics.targets(this).firstOrNull { serial(it) == targetSerial }
             if (target == null) {
                 debug("AUTO_FORWARD_TARGET_UNAVAILABLE")
@@ -274,6 +283,34 @@ open class MainActivity : ComponentActivity() {
             catch (_: IllegalArgumentException) { message = R.string.open_failed }
         }
     }
+    private fun shareLink() {
+        val selected = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link
+        if (selected == null || StoreLinks.target(selected) == null) {
+            message = R.string.invalid_url
+            transit = false
+            return
+        }
+        pendingForward = false
+        pendingStoreOpen = false
+        try {
+            // Fresh text-only SEND. Marker suppresses automatic re-sharing if the
+            // user selects our source copy again; it grants no trust or permission.
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, selected.original)
+                putExtra(IncomingLinkReader.SHARE_ONCE, true)
+            }
+            startActivity(Intent.createChooser(send, getString(R.string.share_link_title)))
+            debug("SHARE_CHOOSER_SUBMITTED_UNKNOWN_OUTCOME")
+            edit("")
+            message = R.string.share_link_submitted
+            if (compactEntry) finish() else transit = false
+        } catch (_: ActivityNotFoundException) {
+            debug("SHARE_CHOOSER_UNAVAILABLE"); message = R.string.open_failed; transit = false
+        } catch (_: SecurityException) {
+            debug("SHARE_CHOOSER_DENIED"); message = R.string.open_failed; transit = false
+        }
+    }
     private fun receive(incoming: Intent) {
         debug(if (trustedStoreEntry) "PROTECTED_ENTRY" else "PUBLIC_ENTRY")
         val value = IncomingLinkReader.read(this, incoming)
@@ -302,7 +339,8 @@ open class MainActivity : ComponentActivity() {
                     !supported -> "ROUTE_MANUAL_ONLY"
                     else -> "AUTO_OPEN_PENDING"
                 })
-                pendingForward = !trustedStoreEntry && !pendingPublicShare && autoForward && supported
+                pendingForward = !trustedStoreEntry && !pendingPublicShare && autoForward && supported &&
+                    !IncomingLinkReader.isSharedOnce(this, incoming)
                 if (pendingForward) debug("AUTO_FORWARD_PENDING")
                 debug(if (supported)
                     "SHOP_ROUTE_SUPPORTED" else "SHOP_ROUTE_UNSUPPORTED")

@@ -9,6 +9,15 @@ import dev.profilebridge.app.StoreReceiveActivity
 import dev.profilebridge.core.links.SafeLink
 
 object IncomingLinkReader {
+    const val SHARE_ONCE = "dev.profilebridge.app.SHARE_ONCE"
+    /** Untrusted opt-out only. Never used to authorize local opening. */
+    fun isSharedOnce(context: Context, incoming: Intent): Boolean = try {
+        IntentSanitizer.Builder()
+            .allowComponent(ComponentName(context, MainActivity::class.java))
+            .allowComponent(ComponentName(context, StoreReceiveActivity::class.java))
+            .allowExtra(SHARE_ONCE, Boolean::class.javaObjectType)
+            .build().sanitizeByFiltering(incoming).getBooleanExtra(SHARE_ONCE, false)
+    } catch (_: RuntimeException) { true }
     fun read(context: Context, incoming: Intent): String? = try {
         val safe = IntentSanitizer.Builder()
             .allowComponent(ComponentName(context, MainActivity::class.java))

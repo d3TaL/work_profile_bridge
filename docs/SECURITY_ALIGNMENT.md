@@ -106,3 +106,12 @@ permissions неизменны, protected TTL/replay не обходится н�
 Core policy тестирует invalid protected ticket, opt-out, VIEW и manual route.
 Diff: `git diff 1a1d28c..HEAD -- app core`. Реальное Knox автооткрытие ожидает
 проверки владельца; AppOps не меняются.
+# 0.2.3 — исходящий chooser
+
+android-intent-security commit 5bda39f: новый SEND создаётся с нуля после
+SafeLink/registry и пользовательского opt-in маршрута, без исходных grants,
+ClipData, nested Intent или package. Scope MainActivity, IncomingLinkReader,
+BridgeScreen, strings/version. SHARE_ONCE через IntentSanitizer разрешает только
+отключение auto-forward, не авторизацию. Signature endpoint и public share
+opt-in неизменны. Diff: `git diff 8af1447..HEAD -- app`. Наблюдаемая ошибка
+chooser остаётся в UI; исход неоднозначен после успешного вызова, retry нет.

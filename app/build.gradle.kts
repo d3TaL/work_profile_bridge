@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 13
-        versionName = "0.2.2-knox-share"
+        versionCode = 14
+        versionName = "0.2.3-share-route"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {
