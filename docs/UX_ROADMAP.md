@@ -1,5 +1,19 @@
 # Порционный UX выпуск
 
+## 0.4.0 — банковская автоматика и сохранение отчёта
+
+По запросу владельца банковский AUTOMATIC доступен после отдельного диалога
+на выбранную группу. Default CONFIRM. Sender auto-forward + bank AUTOMATIC;
+receiver auto-open + bank AUTOMATIC. Knox ещё требует public SEND opt-in,
+выбор получателя chooser остаётся ручным. Нет retries/банковского retryLink.
+Protected TTL/replay сохраняются. Public SEND не аутентифицирован.
+Первый совместимый пакет выбирается вне main, LocalLinkLauncher проверяет
+его ещё раз перед новым VIEW/RESUMED. Это не подтверждение оплаты/callback.
+
+Сохранение отчёта после просмотра через CreateDocument: snapshot только
+в памяти, IO запись, без storage permissions/URL/секретов; process death
+не восстанавливает snapshot, отмена/результат очищают его.
+
 ## 0.3.5 — правила приложений
 
 Ozon/Wildberries из существующего реестра, не список установленного ПО. Поиск,

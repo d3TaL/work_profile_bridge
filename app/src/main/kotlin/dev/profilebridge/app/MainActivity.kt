@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -79,6 +80,22 @@ open class MainActivity : ComponentActivity() {
     private var appModes by mutableStateOf<Map<String, AppMode>>(emptyMap())
     private var retryLink: SafeLink? = null
     private var retryDeadline = 0L
+    private var reportToSave: String? = null
+    private val saveReportDocument = registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        val report = reportToSave
+        reportToSave = null
+        if (uri != null && report != null) lifecycleScope.launch {
+            val ok = withContext(Dispatchers.IO) {
+                try {
+                    contentResolver.openOutputStream(uri, "w")?.use { it.write(report.toByteArray(Charsets.UTF_8)) }
+                        != null
+                } catch (_: java.io.IOException) { false }
+                catch (_: SecurityException) { false }
+                catch (_: IllegalArgumentException) { false }
+            }
+            message = if (ok) R.string.report_saved else R.string.open_failed
+        }
+    }
     private var compactEntry = false
     private var pendingForward = false
     private var debugEnabled by mutableStateOf(false)
@@ -176,6 +193,11 @@ open class MainActivity : ComponentActivity() {
                 openCopy = { target -> message = if (ProfileDiagnostics.open(this, target)) R.string.open_ok else R.string.open_failed },
                 openHandler = ::openHandler,
                 shareReport = ::shareReport,
+                saveReport = { report ->
+                    reportToSave = report
+                    try { saveReportDocument.launch("profile-bridge-report.txt") }
+                    catch (_: ActivityNotFoundException) { reportToSave = null; message = R.string.open_failed }
+                },
                 profileAccess = profileAccess,
                 requestProfileAccess = ::requestAccess,
                 sendToCopy = ::sendToCopy,
@@ -329,13 +351,19 @@ open class MainActivity : ComponentActivity() {
         pendingStoreOpen = false
         if (!pendingOpenAuthorized()) { transit = false; return }
         val selected = (SafeLink.parseRouting(url) as? LinkParseResult.Accepted)?.link ?: return
-        val target = StoreLinks.target(selected) ?: return
+        val target = StoreLinks.target(selected) ?: BankLinks.target(selected) ?: return
         debug("AUTO_OPEN_ATTEMPT")
         launchJob?.cancel()
         link = selected
         val handler = LocalHandler(target)
         launchJob = lifecycleScope.launch {
-            val ok = LocalLinkLauncher.open(this@MainActivity, selected, handler) {
+            val bankPackages = BankLinks.handlerPackages(selected)
+            val actualHandler = if (bankPackages.isEmpty()) handler else withContext(Dispatchers.IO) {
+                bankPackages.firstNotNullOfOrNull { pkg ->
+                    LocalLinkLauncher.handlers(this@MainActivity, selected, pkg).firstOrNull()
+                }
+            }
+            val ok = actualHandler != null && LocalLinkLauncher.open(this@MainActivity, selected, actualHandler) {
                 pendingOpenAuthorized() && allowed(selected, true) && link === selected && url == selected.original
             }
             debug(if (ok) "ACTIVITY_REQUEST_SUBMITTED" else "ACTIVITY_NOT_OPENED")
@@ -450,7 +478,7 @@ open class MainActivity : ComponentActivity() {
             if (extracted != null && SafeLink.parseRouting(extracted) is LinkParseResult.Accepted) {
                 edit(extracted)
                 val parsed = (SafeLink.parseRouting(extracted) as LinkParseResult.Accepted).link
-                val supported = StoreLinks.target(parsed) != null && allowed(parsed, true)
+                val supported = (StoreLinks.target(parsed) != null || BankLinks.target(parsed) != null) && allowed(parsed, true)
                 val delivery = trustedStoreEntry && incoming.action == Intent.ACTION_SEND && StoreDelivery.consume(this, incoming)
                 val isSend = incoming.action == Intent.ACTION_SEND
                 pendingPublicShare = !trustedStoreEntry && isSend && autoOpenShares

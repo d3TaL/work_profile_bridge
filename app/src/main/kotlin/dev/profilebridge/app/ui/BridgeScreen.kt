@@ -32,6 +32,7 @@ fun BridgeScreen(
     changeUrl: (String) -> Unit, inspect: () -> Unit, clear: () -> Unit,
     openCopy: (UserHandle) -> Unit, openHandler: (LocalHandler) -> Unit,
     shareReport: (String) -> Unit,
+    saveReport: (String) -> Unit,
     profileAccess: ProfileAccess, requestProfileAccess: () -> Unit, sendToCopy: (UserHandle) -> Unit,
     autoOpenStores: Boolean, setAutoOpenStores: (Boolean) -> Unit,
     autoOpenShares: Boolean, setAutoOpenShares: (Boolean) -> Unit,
@@ -49,7 +50,12 @@ fun BridgeScreen(
             AlertDialog(onDismissRequest = dismissDebug,
                 title = { Text(stringResource(R.string.report_title)) },
                 text = { Text(report, Modifier.verticalScroll(rememberScrollState())) },
-                confirmButton = { TextButton(onClick = { shareReport(report) }) { Text(stringResource(R.string.share_report)) } },
+                confirmButton = {
+                    Column {
+                        TextButton(onClick = { saveReport(report) }) { Text(stringResource(R.string.save_report)) }
+                        TextButton(onClick = { shareReport(report) }) { Text(stringResource(R.string.share_report)) }
+                    }
+                },
                 dismissButton = { TextButton(onClick = dismissDebug) { Text(stringResource(R.string.close_report)) } })
         }
         Scaffold { insets ->

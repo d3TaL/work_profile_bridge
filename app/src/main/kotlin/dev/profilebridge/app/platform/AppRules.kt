@@ -13,14 +13,13 @@ object AppRules {
     fun mode(context: Context, pkg: String): AppMode {
         val value = context.getSharedPreferences("app-rules", Context.MODE_PRIVATE).getString(pkg, null)
         val mode = AppMode.entries.firstOrNull { it.name == value }
-        if (BankLinks.isPackage(pkg)) return if (mode == AppMode.DISABLED) mode else AppMode.CONFIRM
+        if (BankLinks.isPackage(pkg)) return mode ?: AppMode.CONFIRM
         return mode ?: AppMode.AUTOMATIC
     }
     fun set(context: Context, packages: Set<String>, mode: AppMode) {
         context.getSharedPreferences("app-rules", Context.MODE_PRIVATE).edit {
             apps.filter { it.packageName in packages }.forEach {
-                putString(it.packageName, if (BankLinks.isPackage(it.packageName) && mode == AppMode.AUTOMATIC)
-                    AppMode.CONFIRM.name else mode.name)
+                putString(it.packageName, mode.name)
             }
         }
     }

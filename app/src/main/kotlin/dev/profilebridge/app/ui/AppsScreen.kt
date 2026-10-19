@@ -11,13 +11,22 @@ import androidx.compose.ui.unit.dp
 import dev.profilebridge.app.R
 import dev.profilebridge.app.platform.AppMode
 import dev.profilebridge.app.platform.AppRules
+import dev.profilebridge.core.links.BankLinks
 
 @Composable
 fun AppsScreen(modes: Map<String, AppMode>, apply: (Set<String>, AppMode) -> Unit, close: () -> Unit) {
     var query by remember { mutableStateOf("") }
     var selecting by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf(emptySet<String>()) }
+    var confirmBanks by remember { mutableStateOf(false) }
     MaterialTheme {
+        if (confirmBanks) AlertDialog(onDismissRequest = { confirmBanks = false },
+            title = { Text(stringResource(R.string.bank_auto_title)) },
+            text = { Text(stringResource(R.string.bank_auto_note)) },
+            confirmButton = { TextButton(onClick = {
+                apply(selected, AppMode.AUTOMATIC); selected = emptySet(); selecting = false; confirmBanks = false
+            }) { Text(stringResource(R.string.bank_auto_accept)) } },
+            dismissButton = { TextButton(onClick = { confirmBanks = false }) { Text(stringResource(R.string.apps_cancel)) } })
         Scaffold { insets ->
             Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -49,7 +58,8 @@ fun AppsScreen(modes: Map<String, AppMode>, apply: (Set<String>, AppMode) -> Uni
                 }
                 if (selecting) AppMode.entries.forEach { mode ->
                     OutlinedButton(enabled = selected.isNotEmpty(), onClick = {
-                        apply(selected, mode); selected = emptySet(); selecting = false
+                        if (mode == AppMode.AUTOMATIC && selected.any { BankLinks.isPackage(it) }) confirmBanks = true
+                        else { apply(selected, mode); selected = emptySet(); selecting = false }
                     }) { Text(stringResource(modeText(mode))) }
                 }
                 Button(onClick = close) { Text(stringResource(R.string.close_report)) }
