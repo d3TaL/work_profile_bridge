@@ -1,5 +1,20 @@
 # Проверки восстановленной версии
 
+## 0.3.2-share-retry
+
+- APK commit e6f684a, CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39243132990 SUCCESS:
+  core:test, lint Debug/Release, assemble Debug/Release, strict verification.
+- APK Download/artifacts/profile-bridge-0.3.2-share-retry-e6f684a.apk;
+  SHA-256 1b82199055bb7564eafe10a846de83f9769cdefb4036daaeac20fbaa784a087e.
+  Оба оригинальных SHA256SUMS проверены OK, отчёты отдельно пока не скачаны.
+- Исходная роль убрана, заголовок Secure Folder Knox, собственная vector folder-lock.
+  Ручной retry chooser хранит SafeLink до 120 s только в памяти, очищается timer,
+  закрытием/новым входом/process death. onStop сохраняет только retry, обычный URL
+  очищается. Никаких банковских маршрутов и автоматических повторов.
+- Device тест ожидается: отменить chooser → нажать повтор до TTL → выбрать Knox;
+  после TTL получить сообщение expiry. Rotation не восстанавливает payload.
+  Временная CI подпись: переустановку решает владелец, агент не устанавливал APK.
+
 ## 0.3.1-transfer-screen — 2026-10-19
 
 - Владелец подтвердил работу первого setup экрана 0.3.0.
