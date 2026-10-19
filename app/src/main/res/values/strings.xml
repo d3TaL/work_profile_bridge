@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
     <string name="transfer_title">ПЕРЕДАЧА ССЫЛКИ</string>
-    <string name="transfer_destination">Secure Folder</string>
+    <string name="transfer_destination">Передача в Secure Folder Knox</string>
+    <string name="transfer_retry">Открыть меню снова</string>
+    <string name="transfer_expired">Время повторной передачи истекло. Откройте исходную ссылку заново.</string>
     <string name="transfer_choose">Выберите Bridge внутри Защищённой папки</string>
     <string name="transfer_failed">Системное меню передачи недоступно</string>
     <string name="transfer_unknown">Назначение выбрано в Bridge. В системном меню получателя выбираете вы. Возврат или отмена не подтверждают получение и не запускают повторную передачу.</string>

@@ -71,6 +71,8 @@ open class MainActivity : ComponentActivity() {
     private var showSetup by mutableStateOf(false)
     private var transferApp by mutableStateOf<String?>(null)
     private var transferFailed by mutableStateOf(false)
+    private var retryLink: SafeLink? = null
+    private var retryDeadline = 0L
     private var compactEntry = false
     private var pendingForward = false
     private var debugEnabled by mutableStateOf(false)
@@ -121,8 +123,19 @@ open class MainActivity : ComponentActivity() {
         setContent {
             val transfer = transferApp
             if (transfer != null) {
-                TransferScreen(transfer, roleLabel(), transferFailed) {
+                TransferScreen(transfer, transferFailed, expired = message == R.string.transfer_expired, retry = {
+                    val selected = retryLink
+                    if (selected != null && android.os.SystemClock.elapsedRealtime() < retryDeadline) {
+                        url = selected.original
+                        shareLink()
+                    } else {
+                        retryLink = null
+                        transferFailed = true
+                        message = R.string.transfer_expired
+                    }
+                }) {
                     transferApp = null
+                    retryLink = null
                     if (compactEntry) finish()
                 }
             } else if (showSetup) {
@@ -323,6 +336,15 @@ open class MainActivity : ComponentActivity() {
         }
         pendingForward = false
         pendingStoreOpen = false
+        if (retryLink?.original != selected.original) {
+            retryLink = selected
+            retryDeadline = android.os.SystemClock.elapsedRealtime() + 120_000L
+            val deadline = retryDeadline
+            lifecycleScope.launch {
+                kotlinx.coroutines.delay(120_000L)
+                if (retryDeadline == deadline) retryLink = null
+            }
+        }
         transferApp = when (StoreLinks.target(selected)) {
             "ru.ozon.app.android" -> "Ozon"
             "com.wildberries.ru" -> "Wildberries"
@@ -353,6 +375,7 @@ open class MainActivity : ComponentActivity() {
     }
     private fun receive(incoming: Intent) {
         transferApp = null
+        retryLink = null
         debug(if (trustedStoreEntry) "PROTECTED_ENTRY" else "PUBLIC_ENTRY")
         val value = IncomingLinkReader.read(this, incoming)
         pendingStoreOpen = false

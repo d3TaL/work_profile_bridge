@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 16
-        versionName = "0.3.1-transfer-screen"
+        versionCode = 17
+        versionName = "0.3.2-share-retry"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {
