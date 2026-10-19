@@ -6,7 +6,7 @@ import org.junit.Test
 class BankLinksTest {
     @Test fun `ozon payment allows bank and shop without changing payment policy`() {
         val link = (SafeLink.parseRouting("bank100000000273://qr.nspk.ru/TEST_ONLY") as LinkParseResult.Accepted).link
-        assertEquals(listOf("ru.ozon.fintech.finance", "ru.ozon.app.android"), BankLinks.handlerPackages(link))
+        assertEquals(listOf("ru.ozon.app.android", "ru.ozon.fintech.finance"), BankLinks.handlerPackages(link))
         assertEquals("ru.ozon.fintech.finance", StoreLinks.packageFor(link))
         assertNull(StoreLinks.target(link))
         val other = (SafeLink.parseRouting("bank100000000004://qr.nspk.ru/TEST_ONLY") as LinkParseResult.Accepted).link
