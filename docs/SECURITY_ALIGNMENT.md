@@ -115,3 +115,12 @@ BridgeScreen, strings/version. SHARE_ONCE через IntentSanitizer разре�
 отключение auto-forward, не авторизацию. Signature endpoint и public share
 opt-in неизменны. Diff: `git diff 8af1447..HEAD -- app`. Наблюдаемая ошибка
 chooser остаётся в UI; исход неоднозначен после успешного вызова, retry нет.
+# 0.3.0 — информационный стартовый экран
+
+Scope MainActivity, SetupScreen, BridgeScreen, strings/version. Новый экран
+использует существующий ProfileDiagnostics.requestAccess и его public API;
+разрешений/компонентов/новых Intent каналов нет. Текущая роль не переносится
+на remote targets, Samsung manufacturer не подтверждает Knox. Saved state
+только boolean видимости мастера; ссылка не сохраняется. Входящие cold/warm
+по-прежнему обрабатываются IncomingLinkReader, не ждут прохождения мастера.
+Diff: `git diff 8b65065..HEAD -- app`. Политика ссылок/платежей неизменна.

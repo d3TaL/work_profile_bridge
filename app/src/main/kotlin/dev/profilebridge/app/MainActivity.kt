@@ -32,6 +32,7 @@ import dev.profilebridge.app.platform.StoreDelivery
 import dev.profilebridge.app.platform.ProfileRole
 import dev.profilebridge.app.platform.ProfileRoles
 import dev.profilebridge.app.ui.BridgeScreen
+import dev.profilebridge.app.ui.SetupScreen
 import dev.profilebridge.app.ui.ProbeViewModel
 import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
@@ -66,6 +67,7 @@ open class MainActivity : ComponentActivity() {
     private var targetSerial by mutableLongStateOf(-1L)
     private var role = ProfileRole.UNKNOWN
     private var transit by mutableStateOf(false)
+    private var showSetup by mutableStateOf(false)
     private var compactEntry = false
     private var pendingForward = false
     private var debugEnabled by mutableStateOf(false)
@@ -107,31 +109,34 @@ open class MainActivity : ComponentActivity() {
         shareRoute = prefs.getBoolean("share-route", false)
         compactMode = prefs.getBoolean("compact", false)
         targetSerial = prefs.getLong("target-serial", -1L)
+        showSetup = savedInstanceState?.getBoolean("setup-visible") ?: (intent.action == Intent.ACTION_MAIN &&
+            !prefs.getBoolean("setup-intro-done", false))
         debugEnabled = getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("debug", false)
         if (savedInstanceState == null) receive(intent)
         else setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
         transit = compactEntry && (pendingForward || pendingStoreOpen)
         setContent {
-            if (!transit) {
+            if (showSetup) {
+                SetupScreen(role = roleLabel(), count = targets.size,
+                    samsung = Build.MANUFACTURER.equals("samsung", true), access = profileAccess,
+                    refresh = ::refresh, requestAccess = ::requestAccess,
+                    done = {
+                        prefs.edit().putBoolean("setup-intro-done", true).apply()
+                        showSetup = false
+                    })
+            } else if (!transit) {
             BridgeScreen(
+                openSetup = { refresh(); showSetup = true },
                 targets = targets, message = message,
                 device = getString(R.string.device, Build.VERSION.RELEASE, Build.VERSION.SDK_INT, applicationInfo.targetSdkVersion),
-                profileRole = getString(when (role) {
-                    ProfileRole.MAIN -> R.string.role_main
-                    ProfileRole.MANAGED -> R.string.role_managed
-                    ProfileRole.OTHER -> R.string.role_other
-                    ProfileRole.UNKNOWN -> R.string.role_unknown
-                }),
+                profileRole = roleLabel(),
                 url = url, linkError = linkError, handlers = handlers,
                 refresh = ::refresh, changeUrl = ::edit, inspect = ::inspect, clear = { edit("") },
                 openCopy = { target -> message = if (ProfileDiagnostics.open(this, target)) R.string.open_ok else R.string.open_failed },
                 openHandler = ::openHandler,
                 shareReport = ::shareReport,
                 profileAccess = profileAccess,
-                requestProfileAccess = {
-                    message = if (ProfileDiagnostics.requestAccess(this)) R.string.profile_settings_opened
-                        else R.string.profile_settings_unavailable
-                },
+                requestProfileAccess = ::requestAccess,
                 sendToCopy = ::sendToCopy,
                 autoOpenStores = autoOpenStores,
                 autoOpenShares = autoOpenShares,
@@ -184,12 +189,17 @@ open class MainActivity : ComponentActivity() {
             window.setLayout((bounds.width() * 0.9).toInt(), (bounds.height() * 0.65).toInt())
         }
     }
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("setup-visible", showSetup)
+        super.onSaveInstanceState(outState)
+    }
     override fun onResume() { super.onResume(); autoOpenStores = storeAutoOpenEnabled(); refresh() }
     override fun onPostResume() {
         super.onPostResume()
         lifecycleScope.launch { lifecycle.withResumed { processPending() } }
     }
     override fun onNewIntent(intent: Intent) {
+        showSetup = false
         super.onNewIntent(intent); setIntent(intent); receive(intent)
         transit = compactEntry && (pendingForward || pendingStoreOpen)
         lifecycleScope.launch { lifecycle.withResumed { processPending() } }
@@ -202,6 +212,18 @@ open class MainActivity : ComponentActivity() {
     }
     private fun storeAutoOpenEnabled() =
         getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open", false)
+
+    private fun roleLabel() = getString(when (role) {
+        ProfileRole.MAIN -> R.string.role_main
+        ProfileRole.MANAGED -> R.string.role_managed
+        ProfileRole.OTHER -> R.string.role_other
+        ProfileRole.UNKNOWN -> R.string.role_unknown
+    })
+
+    private fun requestAccess() {
+        message = if (ProfileDiagnostics.requestAccess(this)) R.string.profile_settings_opened
+            else R.string.profile_settings_unavailable
+    }
 
     private fun pendingOpenAuthorized() = if (pendingPublicShare)
         getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open-share", false)

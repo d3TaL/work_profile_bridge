@@ -21,6 +21,7 @@ import dev.profilebridge.app.platform.ProfileAccess
 
 @Composable
 fun BridgeScreen(
+    openSetup: () -> Unit,
     targets: List<UserHandle>, message: Int?, device: String, profileRole: String,
     url: String, linkError: Int?, handlers: List<LocalHandler>, refresh: () -> Unit,
     changeUrl: (String) -> Unit, inspect: () -> Unit, clear: () -> Unit,
@@ -48,6 +49,7 @@ fun BridgeScreen(
             Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.title), style = MaterialTheme.typography.headlineSmall)
+                OutlinedButton(onClick = openSetup) { Text(stringResource(R.string.setup_title)) }
                 Text(stringResource(R.string.intro))
                 Text(device)
                 Text(profileRole)
