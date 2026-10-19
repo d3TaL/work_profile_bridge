@@ -42,6 +42,7 @@ import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
 import dev.profilebridge.core.links.StoreLinks
 import dev.profilebridge.core.links.StoreEntryPolicy
+import dev.profilebridge.core.links.BankLinks
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.withResumed
 import kotlinx.coroutines.Dispatchers
@@ -133,7 +134,8 @@ open class MainActivity : ComponentActivity() {
                     appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
                 }, close = { showApps = false })
             } else if (transfer != null) {
-                TransferScreen(transfer, transferFailed, expired = message == R.string.transfer_expired, retry = {
+                TransferScreen(transfer, transferFailed, expired = message == R.string.transfer_expired,
+                    retryEnabled = retryLink != null, retry = {
                     val selected = retryLink
                     if (selected != null && android.os.SystemClock.elapsedRealtime() < retryDeadline) {
                         url = selected.original
@@ -384,7 +386,7 @@ open class MainActivity : ComponentActivity() {
     }
     private fun shareLink() {
         val selected = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link
-        if (selected == null || StoreLinks.target(selected) == null) {
+        if (selected == null || StoreLinks.packageFor(selected) == null) {
             message = R.string.invalid_url
             transit = false
             return
@@ -392,7 +394,9 @@ open class MainActivity : ComponentActivity() {
         if (!allowed(selected, false)) { message = R.string.apps_blocked; transit = false; return }
         pendingForward = false
         pendingStoreOpen = false
-        if (retryLink?.original != selected.original) {
+        if (BankLinks.target(selected) != null) {
+            retryLink = null // Do not retain/retry payment payloads.
+        } else if (retryLink?.original != selected.original) {
             retryLink = selected
             retryDeadline = android.os.SystemClock.elapsedRealtime() + 120_000L
             val deadline = retryDeadline
@@ -404,7 +408,7 @@ open class MainActivity : ComponentActivity() {
         transferApp = when (StoreLinks.target(selected)) {
             "ru.ozon.app.android" -> "Ozon"
             "com.wildberries.ru" -> "Wildberries"
-            else -> getString(R.string.app_name)
+            else -> if (BankLinks.target(selected) != null) "Т-Банк" else getString(R.string.app_name)
         }
         transferFailed = false
         transit = false
@@ -503,7 +507,9 @@ open class MainActivity : ComponentActivity() {
         if (parsed !is LinkParseResult.Accepted) { linkError = R.string.invalid_url; return }
         val selected = parsed.link
         queryJob = lifecycleScope.launch {
-            val found = withContext(Dispatchers.IO) { LocalLinkLauncher.handlers(this@MainActivity, selected) }
+            val found = withContext(Dispatchers.IO) {
+                LocalLinkLauncher.handlers(this@MainActivity, selected, BankLinks.target(selected))
+            }
             link = selected; handlers = found
             linkError = if (found.isEmpty()) R.string.no_handler else null
         }

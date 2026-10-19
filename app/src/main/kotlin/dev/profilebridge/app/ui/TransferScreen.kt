@@ -27,7 +27,8 @@ import dev.profilebridge.app.R
 
 /** Receives only a fixed registry label, never the link or sender-provided title. */
 @Composable
-fun TransferScreen(appName: String, failed: Boolean, expired: Boolean, retry: () -> Unit, close: () -> Unit) {
+fun TransferScreen(appName: String, failed: Boolean, expired: Boolean, retryEnabled: Boolean,
+                   retry: () -> Unit, close: () -> Unit) {
     MaterialTheme {
         Scaffold { insets ->
             Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
@@ -48,7 +49,7 @@ fun TransferScreen(appName: String, failed: Boolean, expired: Boolean, retry: ()
                 Text(stringResource(R.string.transfer_unknown))
                 if (expired) Text(stringResource(R.string.transfer_expired))
                 Spacer(Modifier.height(32.dp))
-                OutlinedButton(onClick = retry, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = retry, enabled = retryEnabled, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.transfer_retry))
                 }
                 Button(onClick = close, modifier = Modifier.fillMaxWidth()) {

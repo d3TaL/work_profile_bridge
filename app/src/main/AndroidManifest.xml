@@ -10,6 +10,7 @@
     <queries>
         <package android:name="ru.ozon.app.android" />
         <package android:name="com.wildberries.ru" />
+        <package android:name="com.idamob.tinkoff.android" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.BROWSABLE" />
@@ -64,6 +65,14 @@
                 <data android:host="ozon.onelink.me" />
                 <data android:host="wildberries.ru" />
                 <data android:host="www.wildberries.ru" />
+                <data android:host="www.ob-tb.ru" />
+                <data android:host="t-calls.ru" />
+                <data android:host="id.srv-hub.org" />
+                <data android:host="ipa.srv-hub.org" />
+                <data android:host="b.tbao.su" />
+                <data android:host="www.tbank.ru" />
+                <data android:host="tbank.ru" />
+                <data android:host="tt.ru" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

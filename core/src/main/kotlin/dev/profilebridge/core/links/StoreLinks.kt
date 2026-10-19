@@ -18,9 +18,10 @@ object StoreLinks {
     )
 
     /** Recognition is independent of permission to launch automatically. */
-    fun packageFor(link: SafeLink): String? = packages[link.host]
+    fun packageFor(link: SafeLink): String? = packages[link.host] ?: BankLinks.target(link)
 
     fun target(link: SafeLink): String? {
+        if (BankLinks.target(link) != null) return null // Never shop auto-open for banks.
         val pkg = packageFor(link) ?: return null
         if (link.host in ozonHosts) {
             // Best-effort direct payment/account exclusion, not destination verification.
