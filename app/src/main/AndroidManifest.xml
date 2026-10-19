@@ -34,7 +34,8 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/diagnostic_paths" />
         </provider>
         <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTop">
-            <intent-filter>
+            <!-- User-selected HTTPS handler; we do not own shop domains or claim App Link verification. -->
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
