@@ -1,5 +1,20 @@
 # Проверки восстановленной версии
 
+## 0.3.4-clean-home
+
+- APK commit d0d958e; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39247886328 SUCCESS.
+- XML: 31 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK Download/artifacts/profile-bridge-0.3.4-clean-home-d0d958e.apk;
+  SHA-256 8be0858a922ccf63f427a801c311edde8bfd08e84867f96b9a9dcf5ffe07a8bd.
+  Оба оригинальных SHA256SUMS проверены OK.
+- Главный экран — карточка роли/назначения, мастер, ссылка; routing toggles
+  и технические данные свёрнуты отдельно. Сообщения/ошибки остаются видимыми.
+  Saved state только раскрытие разделов, ссылки не сохраняются.
+- Device проверки отложены владельцем: раскрытие/rotation, входящая ссылка,
+  ручная отправка выбранным маршрутом и диагностика. Установка не выполнялась.
+  Подпись CI временная. Следующий этап — приложения/групповые правила.
+
 ## 0.3.3-destination-presets
 
 - APK commit a203ebc, CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39245014820 SUCCESS.
