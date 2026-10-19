@@ -26,6 +26,7 @@ import dev.profilebridge.app.platform.ProfileAccess
 @Composable
 fun BridgeScreen(
     openSetup: () -> Unit,
+    openApps: () -> Unit,
     targets: List<UserHandle>, message: Int?, device: String, profileRole: String,
     url: String, linkError: Int?, handlers: List<LocalHandler>, refresh: () -> Unit,
     changeUrl: (String) -> Unit, inspect: () -> Unit, clear: () -> Unit,
@@ -70,6 +71,7 @@ fun BridgeScreen(
                     }
                 }
                 message?.let { Text(stringResource(it)) }
+                OutlinedButton(onClick = openApps, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.apps_title)) }
                 linkError?.let { Text(stringResource(it)) }
                 Text(stringResource(R.string.link_title), style = MaterialTheme.typography.titleMedium)
                 OutlinedTextField(value = url, onValueChange = changeUrl, modifier = Modifier.fillMaxWidth(), singleLine = true,

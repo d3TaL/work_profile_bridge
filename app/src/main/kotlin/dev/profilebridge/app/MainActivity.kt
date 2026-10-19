@@ -34,6 +34,9 @@ import dev.profilebridge.app.platform.ProfileRoles
 import dev.profilebridge.app.ui.BridgeScreen
 import dev.profilebridge.app.ui.SetupScreen
 import dev.profilebridge.app.ui.TransferScreen
+import dev.profilebridge.app.ui.AppsScreen
+import dev.profilebridge.app.platform.AppRules
+import dev.profilebridge.app.platform.AppMode
 import dev.profilebridge.app.ui.ProbeViewModel
 import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
@@ -71,6 +74,8 @@ open class MainActivity : ComponentActivity() {
     private var showSetup by mutableStateOf(false)
     private var transferApp by mutableStateOf<String?>(null)
     private var transferFailed by mutableStateOf(false)
+    private var showApps by mutableStateOf(false)
+    private var appModes by mutableStateOf<Map<String, AppMode>>(emptyMap())
     private var retryLink: SafeLink? = null
     private var retryDeadline = 0L
     private var compactEntry = false
@@ -122,7 +127,12 @@ open class MainActivity : ComponentActivity() {
         transit = compactEntry && (pendingForward || pendingStoreOpen)
         setContent {
             val transfer = transferApp
-            if (transfer != null) {
+            if (showApps) {
+                AppsScreen(appModes, apply = { packages, mode ->
+                    AppRules.set(this, packages, mode)
+                    appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
+                }, close = { showApps = false })
+            } else if (transfer != null) {
                 TransferScreen(transfer, transferFailed, expired = message == R.string.transfer_expired, retry = {
                     val selected = retryLink
                     if (selected != null && android.os.SystemClock.elapsedRealtime() < retryDeadline) {
@@ -151,6 +161,10 @@ open class MainActivity : ComponentActivity() {
                     })
             } else if (!transit) {
             BridgeScreen(
+                openApps = {
+                    appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
+                    showApps = true
+                },
                 openSetup = { refresh(); showSetup = true },
                 targets = targets, message = message,
                 device = getString(R.string.device, Build.VERSION.RELEASE, Build.VERSION.SDK_INT, applicationInfo.targetSdkVersion),
@@ -224,6 +238,7 @@ open class MainActivity : ComponentActivity() {
         lifecycleScope.launch { lifecycle.withResumed { processPending() } }
     }
     override fun onNewIntent(intent: Intent) {
+        showApps = false
         showSetup = false
         super.onNewIntent(intent); setIntent(intent); receive(intent)
         transit = compactEntry && (pendingForward || pendingStoreOpen)
@@ -282,6 +297,15 @@ open class MainActivity : ComponentActivity() {
         getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open-share", false)
         else storeAutoOpenEnabled()
 
+    private fun allowed(value: SafeLink, automatic: Boolean): Boolean {
+        val pkg = StoreLinks.packageFor(value) ?: return true
+        return when (AppRules.mode(this, pkg)) {
+            AppMode.AUTOMATIC -> true
+            AppMode.CONFIRM -> !automatic
+            AppMode.DISABLED -> false
+        }
+    }
+
     private fun serial(target: UserHandle): Long =
         getSystemService(UserManager::class.java).getSerialNumberForUser(target)
 
@@ -310,7 +334,7 @@ open class MainActivity : ComponentActivity() {
         val handler = LocalHandler(target)
         launchJob = lifecycleScope.launch {
             val ok = LocalLinkLauncher.open(this@MainActivity, selected, handler) {
-                pendingOpenAuthorized() && link === selected && url == selected.original
+                pendingOpenAuthorized() && allowed(selected, true) && link === selected && url == selected.original
             }
             debug(if (ok) "ACTIVITY_REQUEST_SUBMITTED" else "ACTIVITY_NOT_OPENED")
             if (!ok) transit = false
@@ -365,6 +389,7 @@ open class MainActivity : ComponentActivity() {
             transit = false
             return
         }
+        if (!allowed(selected, false)) { message = R.string.apps_blocked; transit = false; return }
         pendingForward = false
         pendingStoreOpen = false
         if (retryLink?.original != selected.original) {
@@ -420,7 +445,7 @@ open class MainActivity : ComponentActivity() {
             if (extracted != null && SafeLink.parse(extracted) is LinkParseResult.Accepted) {
                 edit(extracted)
                 val parsed = (SafeLink.parse(extracted) as LinkParseResult.Accepted).link
-                val supported = StoreLinks.target(parsed) != null
+                val supported = StoreLinks.target(parsed) != null && allowed(parsed, true)
                 val delivery = trustedStoreEntry && incoming.action == Intent.ACTION_SEND && StoreDelivery.consume(this, incoming)
                 val isSend = incoming.action == Intent.ACTION_SEND
                 pendingPublicShare = !trustedStoreEntry && isSend && autoOpenShares
@@ -448,6 +473,8 @@ open class MainActivity : ComponentActivity() {
         profileAccess = ProfileDiagnostics.access(this)
     }
     private fun sendToCopy(target: UserHandle) {
+        val parsed = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link
+        if (parsed != null && !allowed(parsed, false)) { message = R.string.apps_blocked; transit = false; return }
         val result = ProfileDiagnostics.send(this, target, url)
         debug("SEND_${result.name}")
         message = when (result) {
@@ -486,7 +513,7 @@ open class MainActivity : ComponentActivity() {
         val selected = link ?: return
         launchJob = lifecycleScope.launch {
             val ok = LocalLinkLauncher.open(this@MainActivity, selected, handler) {
-                link === selected && selected.original == url && handler in handlers
+                allowed(selected, false) && link === selected && selected.original == url && handler in handlers
             }
             if (link === selected) { edit(""); linkError = if (ok) R.string.open_ok else R.string.open_failed }
         }

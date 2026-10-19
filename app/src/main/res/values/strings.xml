@@ -1,5 +1,17 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
+    <string name="apps_title">Приложения</string>
+    <string name="apps_note">Правила этой копии для поддерживаемых магазинов, даже если магазин здесь не установлен. «Автоматически» допускает только ранее включённую автоматику и разрешённые адреса. «С подтверждением» требует ручной кнопки передачи или открытия. «Отключено» блокирует передачу и открытие известного магазина. Системные разрешения Android не меняются.</string>
+    <string name="apps_search">Поиск приложения</string>
+    <string name="apps_select">Выбрать несколько</string>
+    <string name="apps_cancel">Отменить выбор</string>
+    <string name="apps_count">Выбрано: %1$d</string>
+    <string name="apps_all">Выбрать все найденные</string>
+    <string name="apps_edit">Изменить режим</string>
+    <string name="apps_auto">Автоматически</string>
+    <string name="apps_confirm">С подтверждением</string>
+    <string name="apps_disabled">Отключено</string>
+    <string name="apps_blocked">Передача или открытие этого приложения отключены в разделе «Приложения».</string>
     <string name="home_knox">Назначение: Secure Folder Knox через системное меню</string>
     <string name="home_direct">Назначение: копия %1$d напрямую</string>
     <string name="home_no_target">Назначение ещё не выбрано или копия недоступна</string>
