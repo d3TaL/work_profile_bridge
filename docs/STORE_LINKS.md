@@ -89,3 +89,16 @@ StoreDelivery, ProfileDiagnostics, LocalLinkLauncher и core links/tests.
 +        val candidates = activity.packageManager.queryIntentActivities(view(link).setPackage(targetPackage), PackageManager.MATCH_DEFAULT_ONLY)
 ```
 Полный unified diff — git коммит 0.1.7; результаты фактических проверок в VALIDATION.md.
+# Короткие ссылки Ozon (0.1.9)
+
+Поддержан точный host `ozon.ru`, raw path `/t/[A-Za-z0-9]+`, без query/fragment.
+Исходный адрес передаётся неизменным в `ru.ozon.app.android`; мост не делает
+сетевых запросов и не раскрывает редиректы. Это осознанный запуск короткого
+адреса в магазине, не проверка конечного назначения как страницы товара:
+его содержание неизвестно мосту. Остальные ограничения защищённого входа,
+TTL, replay gate, согласия и RESUMED сохраняются.
+
+В 0.1.8 внутренний sender выбирал PUBLIC_ENTRY для неподдержанного `/t/`.
+Поэтому PUBLIC_ENTRY в отчёте не доказывает внешний Sharesheet: это также
+штатный fallback внутреннего sender. Владелец подтвердил доставку ссылки
+в рабочую копию через внутреннюю кнопку, Report.txt показал unsupported route.

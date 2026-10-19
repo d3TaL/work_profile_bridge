@@ -14,6 +14,15 @@ class StoreLinksTest {
             "https://wildberries.ru/account", "https://ozon.ru/%70roduct/test",
             "https://ozon.ru/?action=pay").forEach { assertNull(target(it)) }
     }
+    @Test fun `ozon short link is routed intact only for exact host and path`() {
+        val raw = "https://ozon.ru/t/AbCd123"
+        assertEquals("ru.ozon.app.android", target(raw))
+        assertEquals(raw, StoreLinks.fromShareText("Товар\n$raw"))
+        listOf("https://www.ozon.ru/t/AbCd123", "https://ozon.ru.evil.org/t/AbCd123",
+            "https://ozon.ru/t/", "https://ozon.ru/t/AbCd123/extra",
+            "https://ozon.ru/t/AbCd123?next=pay", "https://ozon.ru/t/AbCd123#pay",
+            "https://ozon.ru/t/%41bCd123").forEach { assertNull(target(it)) }
+    }
     @Test fun `share title preserves original url and rejects ambiguity`() {
         val raw = "https://ozon.ru/product/test-123/?a=%2F&b=2#f"
         assertEquals(raw, StoreLinks.fromShareText("Название товара\n$raw"))

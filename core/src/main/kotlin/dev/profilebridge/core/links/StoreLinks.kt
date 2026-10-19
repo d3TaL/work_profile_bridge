@@ -11,10 +11,13 @@ object StoreLinks {
     )
 
     fun target(link: SafeLink): String? = packages[link.host]?.takeIf {
-        // Automatic opening is for browsing products, not account/payment actions.
+        // Short-link destinations are opaque: pass only this exact shape to the shop,
+        // without fetching redirects or claiming its destination is a product.
         (link.rawPath.isEmpty() || link.rawPath == "/") &&
             !link.original.contains('?') && !link.original.contains('#') ||
             link.host.endsWith("ozon.ru") && link.rawPath.startsWith("/product/") ||
+            link.host == "ozon.ru" && link.rawPath.matches(Regex("/t/[A-Za-z0-9]+")) &&
+                !link.original.contains('?') && !link.original.contains('#') ||
             link.host.endsWith("wildberries.ru") &&
             link.rawPath.matches(Regex("/catalog/[0-9]+/detail\\.aspx"))
     }
