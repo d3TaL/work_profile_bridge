@@ -1,6 +1,7 @@
 package dev.profilebridge.app.platform
 
 import android.content.Context
+import androidx.core.content.edit
 
 enum class AppMode { AUTOMATIC, CONFIRM, DISABLED }
 data class SupportedApp(val label: String, val packageName: String)
@@ -12,8 +13,8 @@ object AppRules {
         return AppMode.entries.firstOrNull { it.name == value } ?: AppMode.AUTOMATIC
     }
     fun set(context: Context, packages: Set<String>, mode: AppMode) {
-        val edit = context.getSharedPreferences("app-rules", Context.MODE_PRIVATE).edit()
-        apps.filter { it.packageName in packages }.forEach { edit.putString(it.packageName, mode.name) }
-        edit.apply()
+        context.getSharedPreferences("app-rules", Context.MODE_PRIVATE).edit {
+            apps.filter { it.packageName in packages }.forEach { putString(it.packageName, mode.name) }
+        }
     }
 }
