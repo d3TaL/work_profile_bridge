@@ -1,5 +1,28 @@
 # Проверки восстановленной версии
 
+## 0.1.9-ozon-short-links — 2026-10-19
+
+- Владелец подтвердил: Report.txt от 0.1.8 получен в рабочей копии после
+  внутренней передачи; доставка работает. PUBLIC_ENTRY здесь выбран самим
+  sender из-за неподдержанного короткого /t/ адреса, а не внешним share.
+  Прежний вывод о внешнем источнике по одному PUBLIC_ENTRY был неверным.
+- Добавлена поддержка exact ozon.ru/t/[A-Za-z0-9]+ без query/fragment.
+  Конечное назначение непрозрачно, редиректы мостом не запрашиваются.
+- APK commit `b13d65d`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39196913209 — SUCCESS.
+- По скачанным XML: 29 tests, 0 failures/errors/skipped; Debug/Release lint — 0 issues.
+  Debug/Release assemble PASS, strict verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.1.9-ozon-short-links-b13d65d.apk`.
+- SHA-256 `36d940f33c695316bf38500a0f4887a1d8c155e4a08e044c0139a09d12f20331`.
+  Оригиналы `run-39196913209/profile-bridge-apks-16/`, оба SHA256SUMS — OK.
+- apksig 9.4.1 verified=true errors=[]; signer SHA-256
+  `2b4d21786fba7b1316781d62674b97590811f90b4910a8325e234213d29d3ff1`.
+  Отличается от 0.1.8: требуется согласованная владельцем переустановка Bridge,
+  не Shelter или профиля; все копии одним APK. Установка агентом не выполнялась.
+- Проверка телефона ожидается: debug обеих копий, auto-open рабочей,
+  внутренняя передача короткого адреса; ожидаемые события PROTECTED_ENTRY,
+  AUTO_OPEN_PENDING, SHOP_ROUTE_SUPPORTED, AUTO_OPEN_ATTEMPT и результат запуска.
+  ACTIVITY_REQUEST_SUBMITTED не доказывает отображение страницы внутри Ozon.
+
 ## 0.1.8-routing-debug
 
 ### Результаты CI 2026-10-19
