@@ -33,6 +33,7 @@ import dev.profilebridge.app.platform.ProfileRole
 import dev.profilebridge.app.platform.ProfileRoles
 import dev.profilebridge.app.ui.BridgeScreen
 import dev.profilebridge.app.ui.SetupScreen
+import dev.profilebridge.app.ui.TransferScreen
 import dev.profilebridge.app.ui.ProbeViewModel
 import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
@@ -68,6 +69,8 @@ open class MainActivity : ComponentActivity() {
     private var role = ProfileRole.UNKNOWN
     private var transit by mutableStateOf(false)
     private var showSetup by mutableStateOf(false)
+    private var transferApp by mutableStateOf<String?>(null)
+    private var transferFailed by mutableStateOf(false)
     private var compactEntry = false
     private var pendingForward = false
     private var debugEnabled by mutableStateOf(false)
@@ -116,7 +119,13 @@ open class MainActivity : ComponentActivity() {
         else setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
         transit = compactEntry && (pendingForward || pendingStoreOpen)
         setContent {
-            if (showSetup) {
+            val transfer = transferApp
+            if (transfer != null) {
+                TransferScreen(transfer, roleLabel(), transferFailed) {
+                    transferApp = null
+                    if (compactEntry) finish()
+                }
+            } else if (showSetup) {
                 SetupScreen(role = roleLabel(), count = targets.size,
                     samsung = Build.MANUFACTURER.equals("samsung", true), access = profileAccess,
                     refresh = ::refresh, requestAccess = ::requestAccess,
@@ -314,6 +323,13 @@ open class MainActivity : ComponentActivity() {
         }
         pendingForward = false
         pendingStoreOpen = false
+        transferApp = when (StoreLinks.target(selected)) {
+            "ru.ozon.app.android" -> "Ozon"
+            "com.wildberries.ru" -> "Wildberries"
+            else -> getString(R.string.app_name)
+        }
+        transferFailed = false
+        transit = false
         try {
             // Fresh text-only SEND. Marker suppresses automatic re-sharing if the
             // user selects our source copy again; it grants no trust or permission.
@@ -326,14 +342,17 @@ open class MainActivity : ComponentActivity() {
             debug("SHARE_CHOOSER_SUBMITTED_UNKNOWN_OUTCOME")
             edit("")
             message = R.string.share_link_submitted
-            if (compactEntry) finish() else transit = false
+            // Keep a non-sensitive backdrop until the user closes it. No URL retained.
         } catch (_: ActivityNotFoundException) {
+            transferFailed = true
             debug("SHARE_CHOOSER_UNAVAILABLE"); message = R.string.open_failed; transit = false
         } catch (_: SecurityException) {
+            transferFailed = true
             debug("SHARE_CHOOSER_DENIED"); message = R.string.open_failed; transit = false
         }
     }
     private fun receive(incoming: Intent) {
+        transferApp = null
         debug(if (trustedStoreEntry) "PROTECTED_ENTRY" else "PUBLIC_ENTRY")
         val value = IncomingLinkReader.read(this, incoming)
         pendingStoreOpen = false

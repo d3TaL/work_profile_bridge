@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
+    <string name="transfer_title">ПЕРЕДАЧА ССЫЛКИ</string>
+    <string name="transfer_destination">Secure Folder</string>
+    <string name="transfer_choose">Выберите Bridge внутри Защищённой папки</string>
+    <string name="transfer_failed">Системное меню передачи недоступно</string>
+    <string name="transfer_unknown">Назначение выбрано в Bridge. В системном меню получателя выбираете вы. Возврат или отмена не подтверждают получение и не запускают повторную передачу.</string>
     <string name="setup_title">Первоначальная настройка</string>
     <string name="setup_here">ВЫ СЕЙЧАС ЗДЕСЬ</string>
     <string name="setup_detect_note">Роль сообщает Android. Secure Folder не определяется по модели телефона или номеру пользователя.</string>
