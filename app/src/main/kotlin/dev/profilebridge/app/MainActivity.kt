@@ -87,8 +87,10 @@ open class MainActivity : ComponentActivity() {
         if (uri != null && report != null) lifecycleScope.launch {
             val ok = withContext(Dispatchers.IO) {
                 try {
-                    contentResolver.openOutputStream(uri, "w")?.use { it.write(report.toByteArray(Charsets.UTF_8)) }
-                        != null
+                    contentResolver.openOutputStream(uri, "w")?.use {
+                        it.write(report.toByteArray(Charsets.UTF_8))
+                        true
+                    } ?: false
                 } catch (_: java.io.IOException) { false }
                 catch (_: SecurityException) { false }
                 catch (_: IllegalArgumentException) { false }
