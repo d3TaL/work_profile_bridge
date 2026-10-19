@@ -1,5 +1,22 @@
 # Проверки восстановленной версии
 
+## 0.3.9-ozon-bank-handler
+
+- Владелец подтвердил работу банковской версии 0.3.8, Ozon обработчик не найден;
+  отдельного Ozon Банка у владельца нет. Добавлен обычный Ozon первым,
+  ru.ozon.fintech.finance вторым: оба независимо проходят runtime query.
+- Платёж bank100000000273 остаётся банковским CONFIRM/DISABLED, правило
+  магазинного auto-open не применяется. При двух обработчиках ручной выбор.
+- APK commit 4e28a00; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39263194590 SUCCESS.
+- XML 35 tests, 0 failures/errors/skipped, Debug/Release lint 0 issues;
+  assemble Debug/Release PASS, strict verification, Release R8.
+- APK Download/artifacts/profile-bridge-0.3.9-ozon-bank-handler-4e28a00.apk;
+  SHA-256 de1cf00193d931b415208a24c35c0a812ebc57955e011f8b8bc49a367a5f8f93.
+  Оба оригинальных SHA256SUMS OK. Установку агент не выполнял, подпись временная.
+- Device test ожидается: «Тройка» Ozon → Bridge → выбранная копия → поиск
+  обработчиков: ru.ozon.app.android первым при поддержке URI; ручной запуск.
+  Отсутствующий отдельный банк не должен блокировать поиск обычного Ozon.
+
 ## 0.3.8-bank-registry
 
 - APK commit b418c44; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39260884553 SUCCESS.
