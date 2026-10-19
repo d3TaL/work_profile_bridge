@@ -1,5 +1,29 @@
 # Проверки восстановленной версии
 
+## 0.2.1-profile-roles — 2026-10-19
+
+- APK commit `1a1d28c`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39199333153 — SUCCESS.
+- Скачанные XML: 30 tests, failures/errors/skipped = 0; Debug/Release lint 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.2.1-profile-roles-1a1d28c.apk`.
+- SHA-256 `dc60436b67642124af1759ddc990ff387830ed2a7f76d1ef5b08d8b5999b34af`.
+  Оригиналы `run-39199333153/profile-bridge-apks-18/`, оба SHA256SUMS OK.
+- apksig 9.4.1 verified=true errors=[]; signer SHA-256
+  `c1714d7e4809d573262fd07688b93dbc55478014c7b7bb26ca2bc4e3d551e0be`.
+  Подпись отличается от 0.2.0; переустановку Bridge решает владелец, агент
+  ничего не устанавливал/удалял. Один APK для обеих копий, доступ повторно настроить.
+- MAIN/MANAGED role setup и translucent transit с сохранением UI при отказе
+  скомпилированы, но физически пока не испытаны. Владелец сообщил о мерцании
+  прежней версии, где меню рисовалось до открытия Ozon.
+- Device сценарий: launcher обеих копий показывает роль; main auto-forward ON,
+  managed auto-open ON; единственный доступный target выбран. Выключение вручную
+  должно сохраняться после relaunch. OTHER/UNKNOWN настроить вручную, это не
+  точное определение Secure Folder. Compact включить в обеих, выйти Назад,
+  передать ссылку, оценить мерцание/открытие Ozon. При отказе — Report.txt.
+- Подавление preview, прозрачное окно и отсутствие Compose на автоматическом
+  пути уменьшают собственную отрисовку, но не гарантируют отсутствие системного
+  перехода/анимации или успешный background Activity launch на Samsung.
+
 ## 0.2.0-auto-forward — 2026-10-19
 
 - Commit APK `466a663`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39198098939 — SUCCESS.
