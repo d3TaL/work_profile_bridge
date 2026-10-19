@@ -1,5 +1,26 @@
 # Проверки восстановленной версии
 
+## Knox: проверка разрешений через ADB — 2026-10-19
+
+Владелец подтвердил работоспособность 0.2.1, сообщил: копии видны из Secure
+Folder, но передача отклоняется; тумблер межпрофильного доступа включён.
+ADB сопряжён, выполнены только read-only pm/appops/dumpsys запросы.
+Адрес подключения и pairing credentials в репозиторий не записываются.
+
+- Установлена 0.2.1 (versionCode 12) у users 0, 11 (Shelter), 150 (Secure Folder).
+- AppOps INTERACT_ACROSS_PROFILES: users 0 и 11 — uid mode allow;
+  user 150 — No operations, default mode default (не explicit allow).
+- Profile owner user 11 — net.typeblog.shelter, owner user 150 —
+  com.samsung.knox.securefolder. У администратора Shelter наблюдается
+  mCrossProfilePackages=[dev.profilebridge.app]; у Secure Folder — [].
+- Это подтверждает различие политик/эффективного AppOp между контейнерами.
+  Тумблер в настройках нельзя считать доказательством разрешения для uid 150.
+  Точное место отказа внутри APK (precheck vs startActivity exception) этим
+  не установлено; требуется разделение диагностических кодов или новый отчёт.
+- Права через shell не выдавались, DPC/Knox/установки не менялись. Прямой
+  CrossProfileApps путь из Knox не подтверждён. Следующий эксперимент —
+  штатный Sharesheet в Bridge внутри папки с публичной ссылкой и ручным открытием.
+
 ## 0.2.1-profile-roles — 2026-10-19
 
 - APK commit `1a1d28c`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39199333153 — SUCCESS.
