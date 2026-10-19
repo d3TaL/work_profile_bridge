@@ -1,5 +1,21 @@
 # Проверки восстановленной версии
 
+## 0.3.5-app-rules
+
+- APK commit f41cd95; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39250720884 SUCCESS.
+- XML: 31 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK Download/artifacts/profile-bridge-0.3.5-app-rules-f41cd95.apk;
+  SHA-256 472136e2615d3d19ad85023e267247801b451902bfc457a3b74b3cdd587be486.
+  Оба оригинальных SHA256SUMS проверены OK.
+- AppRules local prefs automatic/confirm/disabled, поиск и групповой выбор
+  двух известных магазинов (не installed apps). Проверка перед автообработкой,
+  ручной отправкой/Sharesheet и local VIEW. Получатель применяет свои правила.
+- Первый run 39250100046 упал на UseKtx SharedPreferences.edit, исправлено без
+  подавления lint. Новые device проверки отложены: bulk persistence, opt-out
+  в обеих копиях, confirm с ручной кнопкой, отсутствие auto при confirm.
+  Банковские маршруты не добавлены. Подпись CI временная, установки не было.
+
 ## 0.3.4-clean-home
 
 - APK commit d0d958e; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39247886328 SUCCESS.
