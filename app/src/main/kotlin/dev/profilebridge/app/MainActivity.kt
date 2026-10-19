@@ -33,6 +33,7 @@ import dev.profilebridge.core.links.LinkParseResult
 import dev.profilebridge.core.links.SafeLink
 import dev.profilebridge.core.links.StoreLinks
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.withResumed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -52,24 +53,32 @@ open class MainActivity : ComponentActivity() {
     private var launchJob: Job? = null
     private var pendingStoreOpen = false
     private var autoOpenStores by mutableStateOf(false)
+    private var debugEnabled by mutableStateOf(false)
+    private var debugReport by mutableStateOf<String?>(null)
+    private val debugEvents = ArrayDeque<String>()
+    private fun debug(code: String) {
+        if (!debugEnabled) return
+        if (debugEvents.size >= 64) debugEvents.removeFirst()
+        debugEvents.addLast(code)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
         autoOpenStores = storeAutoOpenEnabled()
+        debugEnabled = getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("debug", false)
         if (savedInstanceState == null) receive(intent)
         else setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
         setContent {
             BridgeScreen(
-                probe = probe, targets = targets, message = message,
+                targets = targets, message = message,
                 device = getString(R.string.device, Build.VERSION.RELEASE, Build.VERSION.SDK_INT, applicationInfo.targetSdkVersion),
                 url = url, linkError = linkError, handlers = handlers,
                 refresh = ::refresh, changeUrl = ::edit, inspect = ::inspect, clear = { edit("") },
                 openCopy = { target -> message = if (ProfileDiagnostics.open(this, target)) R.string.open_ok else R.string.open_failed },
                 openHandler = ::openHandler,
                 shareReport = ::shareReport,
-                copyCode = ::copyCode, pasteCode = ::pasteCode,
                 profileAccess = profileAccess,
                 requestProfileAccess = {
                     message = if (ProfileDiagnostics.requestAccess(this)) R.string.profile_settings_opened
@@ -81,13 +90,25 @@ open class MainActivity : ComponentActivity() {
                     autoOpenStores = enabled
                     getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("auto-open", enabled).apply()
                 },
+                debugEnabled = debugEnabled,
+                setDebugEnabled = { enabled ->
+                    debugEnabled = enabled; debugEvents.clear(); debugReport = null
+                    getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("debug", enabled).apply()
+                },
+                debugReport = debugReport,
+                previewDebug = { debugReport = "Profile Bridge ${BuildConfig.VERSION_NAME}\n" + debugEvents.joinToString("\n") },
+                dismissDebug = { debugReport = null },
             )
         }
     }
     override fun onResume() { super.onResume(); autoOpenStores = storeAutoOpenEnabled(); refresh() }
-    override fun onPostResume() { super.onPostResume(); openPendingStore() }
+    override fun onPostResume() {
+        super.onPostResume()
+        lifecycleScope.launch { lifecycle.withResumed { openPendingStore() } }
+    }
     override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent); setIntent(intent); receive(intent); openPendingStore()
+        super.onNewIntent(intent); setIntent(intent); receive(intent)
+        lifecycleScope.launch { lifecycle.withResumed { openPendingStore() } }
     }
     override fun onStop() {
         pendingStoreOpen = false
@@ -103,6 +124,7 @@ open class MainActivity : ComponentActivity() {
         if (!storeAutoOpenEnabled()) return
         val selected = (SafeLink.parse(url) as? LinkParseResult.Accepted)?.link ?: return
         val target = StoreLinks.target(selected) ?: return
+        debug("AUTO_OPEN_ATTEMPT")
         launchJob?.cancel()
         link = selected
         val handler = LocalHandler(target)
@@ -110,6 +132,7 @@ open class MainActivity : ComponentActivity() {
             val ok = LocalLinkLauncher.open(this@MainActivity, selected, handler) {
                 storeAutoOpenEnabled() && link === selected && url == selected.original
             }
+            debug(if (ok) "ACTIVITY_REQUEST_SUBMITTED" else "ACTIVITY_NOT_OPENED")
             if (link === selected) {
                 if (ok) edit("")
                 linkError = if (ok) R.string.open_ok else R.string.store_open_failed
@@ -154,6 +177,7 @@ open class MainActivity : ComponentActivity() {
         }
     }
     private fun receive(incoming: Intent) {
+        debug(if (trustedStoreEntry) "PROTECTED_ENTRY" else "PUBLIC_ENTRY")
         val value = IncomingLinkReader.read(this, incoming)
         pendingStoreOpen = false
         launchJob?.cancel()
@@ -165,6 +189,9 @@ open class MainActivity : ComponentActivity() {
                 edit(extracted)
                 pendingStoreOpen = trustedStoreEntry && incoming.action == Intent.ACTION_SEND &&
                     StoreDelivery.consume(this, incoming) && storeAutoOpenEnabled()
+                debug(if (pendingStoreOpen) "AUTO_OPEN_PENDING" else "MANUAL_MODE_OR_DELIVERY_REJECTED")
+                debug(if (StoreLinks.target((SafeLink.parse(extracted) as LinkParseResult.Accepted).link) != null)
+                    "SHOP_ROUTE_SUPPORTED" else "SHOP_ROUTE_UNSUPPORTED")
                 message = R.string.link_received
             } else linkError = R.string.invalid_url
         }
@@ -175,6 +202,7 @@ open class MainActivity : ComponentActivity() {
     }
     private fun sendToCopy(target: UserHandle) {
         val result = ProfileDiagnostics.send(this, target, url)
+        debug("SEND_${result.name}")
         message = when (result) {
             ProfileSendResult.SUBMITTED_UNKNOWN_OUTCOME -> R.string.profile_submitted
             ProfileSendResult.INVALID_LINK -> R.string.invalid_url

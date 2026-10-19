@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 8
-        versionName = "0.1.7-store-links"
+        versionCode = 9
+        versionName = "0.1.8-routing-debug"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {

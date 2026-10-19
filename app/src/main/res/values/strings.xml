@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
-    <string name="title">Profile Bridge · TLS диагностика</string>
-    <string name="intro">Версия 0.1.7. Передача ссылок Ozon/Wildberries в рабочую копию. Магазины в основном профиле не нужны. Прямой канал требует межпрофильного доступа Android.</string>
+    <string name="title">Profile Bridge · Ссылки</string>
+    <string name="debug_mode">Отладка передачи и открытия</string>
+    <string name="debug_note">Журнал только в памяти, без URL и токенов. Выключение очищает журнал. Включите в обеих копиях до теста. MCP и удалённое управление пока не подключены.</string>
+    <string name="intro">Версия 0.1.8. Передача ссылок Ozon/Wildberries в рабочую копию. Магазины в основном профиле не нужны. Для автоматического открытия включите переключатель в рабочей копии.</string>
     <string name="self_check">Проверить TLS внутри этого профиля</string>
     <string name="self_check_note">Локальная самопроверка использует AndroidKeyStore и правильный pin. Её успех не подтверждает связь между профилями.</string>
     <string name="remaining">Осталось: %1$d с</string>
