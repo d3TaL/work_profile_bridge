@@ -2,6 +2,24 @@
 
 ## 0.1.8-routing-debug
 
+### Результаты CI 2026-10-19
+
+- APK commit `c6107a1`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39195461107 — SUCCESS.
+- Скачанные XML: 28 JVM tests, failures/errors/skipped = 0; lint Debug/Release — 0 issues.
+- Assemble Debug/Release PASS, strict dependency verification; release с R8.
+- Первый run `39194941509` остановился на UnusedResources после удаления TLS UI;
+  неиспользуемые строки удалены без подавления lint.
+- APK: `/storage/emulated/0/Download/artifacts/profile-bridge-0.1.8-routing-debug-c6107a1.apk`.
+- SHA-256: `ef3634ba9b70dcc2f47c6fa2ee38930c4a851231430902e0496a09807704fed4`.
+- Оригиналы в `run-39195461107/profile-bridge-apks-15/`; оба SHA256SUMS — OK.
+- apksig 9.4.1: verified=true, errors=[]; signer SHA-256
+  `8463447978e39887b6f1b1a79788b02e81b33052f716f34c131749eca739f019`.
+  Он отличается от 0.1.7: обычное обновление поверх неё не поддерживается.
+  Переустановка требует отдельного решения владельца; профиль/DPC не удалять.
+- Автооткрытие Ozon на устройстве ещё не проверено. Включить debug в обеих
+  копиях и auto-open у получателя, отправить обычную /product/ ссылку.
+  Если не открылось — открыть отчёт рабочей копии, посмотреть и поделиться.
+
 TLS меню удалено из BridgeScreen. Добавлен пользовательский toggle отладки
 и bounded 64-event in-memory журнал только фиксированных кодов: вход,
 допуск delivery, магазинный маршрут, попытка открытия, результат startActivity.
