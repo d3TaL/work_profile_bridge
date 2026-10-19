@@ -1,5 +1,25 @@
 # Проверки восстановленной версии
 
+## 0.3.1-transfer-screen — 2026-10-19
+
+- Владелец подтвердил работу первого setup экрана 0.3.0.
+- Следующая UX-порция: экран системной передачи вместо главного меню,
+  фиксированное имя магазина из реестра, source role и выбранный Secure Folder.
+  Нет URL, ACK или retry; после возврата только закрытие. Compact остаётся dialog.
+- APK commit `5affaee`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39241357525 — SUCCESS.
+- XML: 31 tests, 0 failures/errors/skipped; Debug/Release lint 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.3.1-transfer-screen-5affaee.apk`.
+- SHA-256 `bcfa3822e4eb8b53d4e42e7c9cc912c7bca15a7bc4e2aa206dfaf0106370344e`.
+  Оригиналы `run-39241357525/profile-bridge-apks-22/`, оба SHA256SUMS OK.
+- apksig verified=true errors=[]; signer SHA-256
+  `029d18c6ad53dba0868faeaf7b38929147b526ad75d37518eac900a705d91c5c`.
+  Временная подпись отличается от предыдущей. Установка агентом не выполнялась.
+- Device test ожидается: share-route + auto-forward в основной; входящая ссылка
+  Ozon → chooser, сзади новый экран Ozon/роль/Secure Folder; выбор Knox Bridge →
+  Ozon. Отмена и возврат оставляют экран, не запускают повтор. Rotation/process
+  death не восстанавливают payload/отправку. Внешний фон/отрисовка требуют телефона.
+
 ## 0.3.0-setup-intro — 2026-10-19
 
 - Первый UX-этап: SetupScreen на первом launcher запуске, акцент текущей роли,
