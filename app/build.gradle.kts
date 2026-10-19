@@ -9,8 +9,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 18
-        versionName = "0.3.3-destination-presets"
+        versionCode = 19
+        versionName = "0.3.4-clean-home"
     }
     buildFeatures { compose = true; buildConfig = true }
     buildTypes {

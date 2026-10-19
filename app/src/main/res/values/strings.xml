@@ -1,5 +1,16 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
+    <string name="home_knox">Назначение: Secure Folder Knox через системное меню</string>
+    <string name="home_direct">Назначение: копия %1$d напрямую</string>
+    <string name="home_no_target">Назначение ещё не выбрано или копия недоступна</string>
+    <string name="home_auto">Автопередача включена</string>
+    <string name="home_manual">Автопередача выключена — ручной режим</string>
+    <string name="home_setup">Настроить назначение и режим</string>
+    <string name="home_share_hint">Поделитесь ссылкой из другого приложения или вставьте её в поле выше.</string>
+    <string name="home_advanced">Дополнительные настройки</string>
+    <string name="home_hide_advanced">Скрыть дополнительные настройки</string>
+    <string name="home_diagnostics">Диагностика и отчёт</string>
+    <string name="home_hide_diagnostics">Скрыть диагностику</string>
     <string name="role_knox_manual">Secure Folder Knox — указано пользователем</string>
     <string name="preset_title">Выберите режим этой копии</string>
     <string name="preset_current_knox">Основное назначение: Secure Folder через системное меню</string>
