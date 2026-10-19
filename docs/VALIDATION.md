@@ -1,5 +1,28 @@
 # Проверки восстановленной версии
 
+## 0.2.3-share-route — 2026-10-19
+
+- Владелец подтвердил на 0.2.2: Share → Bridge в Knox → Ozon открывается.
+- Добавлен заранее выбираемый share-route вместо прямой автопередачи,
+  ручная share кнопка и untrusted SHARE_ONCE для подавления повторного chooser.
+- APK commit `8b65065`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39211343257 — SUCCESS.
+- Скачанные XML: 31 JVM tests, 0 failures/errors/skipped; lint Debug/Release
+  0 issues. Assemble Debug/Release PASS, strict verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.2.3-share-route-8b65065.apk`.
+- SHA-256 `a93f58b22b545c188614a31c8f10030d5ceb43a92c9c67d0b73b10518befa699`.
+  Оригиналы `run-39211343257/profile-bridge-apks-20/`, оба SHA256SUMS OK.
+- apksig 9.4.1 verified=true errors=[]; signer SHA-256
+  `68c94ed9fecc14ee791418a6f6dd390f7a191be85a76ef9b6e3c40403b05fd20`.
+  Подпись отличается от предыдущей, установку/удаление агент не выполнял.
+- Device сценарий ожидается: основной auto-forward ON + share-route ON,
+  public share auto-open OFF; Knox public share auto-open ON. Входящая
+  ссылка в основном мосте открывает chooser; пользователь выбирает Knox Bridge,
+  затем Ozon. Compact по желанию. Отмена/возврат не должны запускать chooser
+  повторно. Выбор внешнего Bridge должен остаться ручным при сохранённом marker.
+- Android/Samsung может удалять extras при межпрофильном share; сохранение
+  SHARE_ONCE и реальное подавление re-share требуют проверки. Выбор целевой
+  копии автоматически не выполняется; сам chooser не является ACK доставки.
+
 ## 0.2.2-knox-share — 2026-10-19
 
 - Владелец подтвердил системный Sharesheet → Bridge внутри Secure Folder:
