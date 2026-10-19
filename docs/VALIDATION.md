@@ -1,5 +1,21 @@
 # Проверки восстановленной версии
 
+## 0.3.3-destination-presets
+
+- APK commit a203ebc, CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39245014820 SUCCESS.
+- XML: 31 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK Download/artifacts/profile-bridge-0.3.3-destination-presets-a203ebc.apk;
+  SHA-256 50d11218c63eedabda233fba6e8d620a74f42e2ae886f125d86404f4645ddeed.
+  Оба оригинальных SHA256SUMS проверены OK.
+- Мастер применяет явные sender direct/Knox, managed receiver, manual Knox
+  receiver и manual presets. Выбор изменяет routing booleans одним действием,
+  системные permissions не меняются. Knox public share согласие отдельным текстом
+  и кнопкой. Тип remote target не предполагается. Compact/debug не меняются.
+- Установка/физическая проверка не выполнялись по решению владельца отложить
+  тестирование. Проверить presets и ручное переопределение позже вместе с UX.
+  Временная CI подпись, не обещать обновление поверх старой версии.
+
 ## 0.3.2-share-retry
 
 - APK commit e6f684a, CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39243132990 SUCCESS:
