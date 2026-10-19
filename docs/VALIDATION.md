@@ -1,5 +1,23 @@
 # Проверки восстановленной версии
 
+## 0.3.8-bank-registry
+
+- APK commit b418c44; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39260884553 SUCCESS.
+- XML: 34 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK Download/artifacts/profile-bridge-0.3.8-bank-registry-b418c44.apk;
+  SHA-256 31072855a9cb2b5c6c8d199cc47d3bd0e1e51f5a9930ab6cbfd62c045a36d9b3.
+  Оба оригинальных SHA256SUMS проверены OK.
+- 14 exact схем наблюдений и packages из RuStore; общий список правил,
+  все банки только CONFIRM/DISABLED. Тест каждой схемы: raw preservation,
+  точный package mapping и отсутствие магазинного auto-open.
+- Package источники: BANK_SCHEME_OBSERVATIONS.md. Это не device manifest/signature
+  verification. Ozon Банк только ru.ozon.fintech.finance по выбору владельца;
+  fallback на ru.ozon.app.android не добавлен.
+- Физически подтверждён только Т-Банк на 0.3.7; остальные ожидают теста из
+  «Тройки» через Bridge в выбранной копии, без автоматического повтора.
+  Установку агент не выполнял; CI подпись временная, callback не гарантирован.
+
 ## 0.3.7-tbank-scheme
 
 - APK commit 8b645fe; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39256588801 SUCCESS.
