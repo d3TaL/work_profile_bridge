@@ -1,5 +1,27 @@
 # Проверки восстановленной версии
 
+## 0.3.0-setup-intro — 2026-10-19
+
+- Первый UX-этап: SetupScreen на первом launcher запуске, акцент текущей роли,
+  число видимых копий (без утверждения об их типе/праве передачи), инструкции
+  клонирования и Samsung Secure Folder, штатный запрос межпрофильного доступа.
+  Повторное открытие из главного экрана. Полный roadmap: UX_ROADMAP.md.
+- APK commit `c26af98`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39238861113 — SUCCESS.
+- Скачанные XML: 31 tests, 0 failures/errors/skipped; Debug/Release lint 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.3.0-setup-intro-c26af98.apk`.
+- SHA-256 `92421c775dce55bc526061a858881f800fe74891351ddbe4470b6e53ff8116e8`.
+  Оригиналы `run-39238861113/profile-bridge-apks-21/`, оба SHA256SUMS OK.
+- apksig 9.4.1 verified=true errors=[]; signer SHA-256
+  `d97db84fe63ef9732e82896fcb832f59ab3e12bf8a57903659b155ed1aa48c3a`.
+  Подпись временная отличается от прежней. Установка/удаление агентом не выполнялись.
+- Device проверки ожидаются: первый launcher в каждой копии, правильная карточка
+  роли, обновление после Android settings, повторное открытие и rotation мастера,
+  входящая SEND/VIEW без блокировки введением. После завершения вводный экран
+  не показывается автоматически; это не подтверждает готовность маршрута.
+- Следующая порция: экран передачи приложения/назначения под системным меню.
+  Банковская доставка в этом выпуске не добавлена и не проверялась.
+
 ## 0.2.3-share-route — 2026-10-19
 
 - Владелец подтвердил на 0.2.2: Share → Bridge в Knox → Ozon открывается.
