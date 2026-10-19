@@ -1,5 +1,22 @@
 # Проверки восстановленной версии
 
+## 0.3.7-tbank-scheme
+
+- APK commit 8b645fe; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39256588801 SUCCESS.
+- XML: 33 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK Download/artifacts/profile-bridge-0.3.7-tbank-scheme-8b645fe.apk;
+  SHA-256 0b57a92476052d95aeca11c9ca9d6c927aa691542393b904cfbc401b0379838b.
+  Оба оригинальных SHA256SUMS проверены OK.
+- Новый VIEW filter/parseRouting только bank100000000004, HTTPS parse прежний.
+  Только manual transfer/open, no bank retry, no TLS/report/state payload.
+- Device сценарий ожидается: «Тройка» → выбор Т-Банка → Bridge в основном →
+  вручную копия/Knox share → «Найти обработчики» → Т-Банк. Не подтверждать оплату
+  до проверки формы; отмена/возврат отдельно. Если parse отклоняет, не присылать
+  полный URL: исследовать только безопасные структурные признаки локально.
+- Установка и реальная оплата агентом не выполнялись. Runtime совместимость
+  обработчика/подписи банка не доказана, callback не гарантирован. CI ключ временный.
+
 ## 0.3.6-tbank-manual
 
 - APK commit 04f0573; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39252461132 SUCCESS.
