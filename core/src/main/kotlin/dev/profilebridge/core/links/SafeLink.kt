@@ -16,7 +16,7 @@ class SafeLink private constructor(
         const val MAX_BYTES = 16 * 1024
         /** Explicit routing boundary: HTTPS or the single supported T-Bank payment scheme. */
         fun parseRouting(input: String): LinkParseResult {
-            if (!input.startsWith("${BankLinks.T_BANK_SCHEME}:", ignoreCase = true)) return parse(input)
+            if (!BankLinks.isScheme(input.substringBefore(':'))) return parse(input)
             if (input.length > MAX_BYTES || input.toByteArray(Charsets.UTF_8).size > MAX_BYTES)
                 return LinkParseResult.Rejected(LinkError.TOO_LARGE)
             if (input.any { it.isWhitespace() || it.isISOControl() || it == '\\' || it.isSurrogate() })
@@ -27,7 +27,7 @@ class SafeLink private constructor(
             if (uri.isOpaque || uri.rawAuthority.isNullOrEmpty() || uri.host == null ||
                 uri.rawUserInfo != null || uri.port != -1 || uri.rawFragment != null)
                 return LinkParseResult.Rejected(LinkError.INVALID_AUTHORITY)
-            return LinkParseResult.Accepted(SafeLink(input, BankLinks.T_BANK_SCHEME,
+            return LinkParseResult.Accepted(SafeLink(input, uri.scheme.lowercase(Locale.ROOT),
                 uri.host.lowercase(Locale.ROOT), uri.rawPath.orEmpty()))
         }
         fun parse(input: String): LinkParseResult {

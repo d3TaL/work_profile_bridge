@@ -408,7 +408,8 @@ open class MainActivity : ComponentActivity() {
         transferApp = when (StoreLinks.target(selected)) {
             "ru.ozon.app.android" -> "Ozon"
             "com.wildberries.ru" -> "Wildberries"
-            else -> if (BankLinks.target(selected) != null) "Т-Банк" else getString(R.string.app_name)
+            else -> BankLinks.banks.firstOrNull { it.packageName == BankLinks.target(selected) }?.label
+                ?: getString(R.string.app_name)
         }
         transferFailed = false
         transit = false

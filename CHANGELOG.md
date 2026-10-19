@@ -132,3 +132,8 @@
 
 - Routing parser и VIEW filter для bank100000000004:// из «Тройки».
 - Только ручная передача/открытие. HTTPS parser и diagnostic ping не расширены.
+# 0.3.8-bank-registry
+
+- Все 14 наблюдаемых банковских схем и пакеты из карточек RuStore.
+- Банки в групповом списке, всегда manual confirm/disabled; без auto-open/retry.
+- Ozon Банк пока только отдельный ru.ozon.fintech.finance, без fallback в магазин.

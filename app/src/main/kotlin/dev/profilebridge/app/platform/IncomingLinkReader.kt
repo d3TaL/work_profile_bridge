@@ -26,7 +26,7 @@ object IncomingLinkReader {
             .allowAction(Intent.ACTION_MAIN).allowAction(Intent.ACTION_SEND).allowAction(Intent.ACTION_VIEW)
             .allowCategory(Intent.CATEGORY_LAUNCHER).allowCategory(Intent.CATEGORY_DEFAULT)
             .allowCategory(Intent.CATEGORY_BROWSABLE).allowType("text/plain")
-            .allowData { it.scheme.equals("https", true) || it.scheme.equals(BankLinks.T_BANK_SCHEME, true) }
+            .allowData { it.scheme.equals("https", true) || BankLinks.isScheme(it.scheme) }
             .allowExtra(Intent.EXTRA_TEXT, CharSequence::class.java)
             .build().sanitizeByFiltering(incoming)
         when (safe.action) {

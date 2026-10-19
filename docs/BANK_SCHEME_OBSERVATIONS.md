@@ -1,5 +1,35 @@
 # Наблюдаемые банковские схемы
 
+## Пакеты для 0.3.8
+
+Каждая строка сверена с карточкой RuStore по адресу
+`https://www.rustore.ru/catalog/app/<package>` 2026-10-19. Карточка подтверждает
+связь названия и пакета, но не схему его manifest или сертификат установки.
+Runtime query у получателя обязателен; device оплата не подтверждена.
+
+| Банк | Package |
+| --- | --- |
+| Т-Банк | com.idamob.tinkoff.android |
+| Сбер | ru.sberbankmobile |
+| ВТБ | ru.vtb24.mobilebanking.android |
+| Альфа | ru.alfabank.mobile.android |
+| Райффайзен | ru.raiffeisennews |
+| Газпромбанк | ru.gazprombank.android.mobilebank.app |
+| ПСБ | logo.com.mbanking |
+| Совкомбанк | ru.sovcomcard.halva.v1 |
+| РСХБ | ru.rshb.dbo |
+| МКБ | ru.mkb.mobile |
+| МТС Деньги | ru.lewis.dbo |
+| ЮMoney | ru.yoo.money |
+| ОТП | ru.otpbank.mobile |
+| Ozon Банк | ru.ozon.fintech.finance |
+
+Владелец указал возможную обработку Ozon Банком через ru.ozon.app.android,
+но попросил сначала проверить отдельное приложение. Fallback не добавлен.
+Банковские режимы только CONFIRM/DISABLED, даже при bulk AUTOMATIC.
+HTTPS hosts расширены только для ранее подтверждённого списка Т-Банка.
+Ранее ниже описан этап наблюдений до runtime регистрации остальных схем.
+
 Источник: последовательные нажатия владельца в «Тройке», read-only ADB
 ActivityTaskManager ACTION_VIEW, 2026-10-19. Сопоставление с названиями по
 порядку владельца. Это не аттестация банка или подтверждение обработки/оплаты.
