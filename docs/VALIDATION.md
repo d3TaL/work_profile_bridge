@@ -1,5 +1,23 @@
 # Проверки восстановленной версии
 
+## 0.3.6-tbank-manual
+
+- APK commit 04f0573; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39252461132 SUCCESS.
+- XML: 32 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8.
+- APK Download/artifacts/profile-bridge-0.3.6-tbank-manual-04f0573.apk;
+  SHA-256 769caedfa7daeca1959347a4d8d58f8ceb993c840d375d25e869922b7dbcd2d4.
+  Оба оригинальных SHA256SUMS проверены OK.
+- 8 exact банковских hosts, отдельная BankLinks, никогда StoreLinks.target;
+  AppRules принудительно confirm/disabled, public/protected магазинный auto-open
+  банк не запускает. Manual handler query ограничен пакетом Т-Банка.
+- Пакет подтверждён RuStore, установленная версия не сверена (ADB disconnected).
+  Банковский share payload в retryLink не сохраняется, повторная кнопка disabled.
+- Device/payment проверки не выполнены: public tbank.ru → manual transfer →
+  manual local open; затем переход оплаты без подтверждения платежа, отмена и
+  возврат. Custom schemes/explicit SDK/results не поддержаны. См. TBANK.md.
+  Установку агент не выполнял; CI подпись временная.
+
 ## 0.3.5-app-rules
 
 - APK commit f41cd95; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39250720884 SUCCESS.
