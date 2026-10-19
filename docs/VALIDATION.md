@@ -1,5 +1,31 @@
 # Проверки восстановленной версии
 
+## 0.2.0-auto-forward — 2026-10-19
+
+- Commit APK `466a663`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39198098939 — SUCCESS.
+- Скачанные XML: 30 JVM tests, 0 failures/errors/skipped.
+- Debug/Release lint PASS: 0 errors/warnings, по 1 Hint AutoboxingStateCreation
+  (mutableStateOf<Long> для serial; не подавлен). Debug/Release assemble PASS,
+  strict dependency verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.2.0-auto-forward-466a663.apk`.
+- SHA-256 `55ec03abe22089212ec6b4b7f042bf4d7789f86c05d21d770b5cdfbe594bb90a`.
+- Оригиналы `run-39198098939/profile-bridge-apks-17/`, оба SHA256SUMS OK.
+  apksig 9.4.1 verified=true errors=[]; signer SHA-256
+  `e1189627c277b23655b6f8e854e79fb57ee41d860eb780431e4cbd8982a6e928`.
+  Подпись временная, отличается от 0.1.9; обновление поверх прежней установки
+  невозможно без подходящего старого ключа. Установку/удаление агент не выполнял.
+- Auto-forward, auto-open, compact по умолчанию false. Реестр и контракт:
+  [DOMAIN_REGISTRY.md](DOMAIN_REGISTRY.md). 21 exact домен Ozon из скриншотов;
+  checkout/test — manual, пути коротких ссылок не привязаны к /t/.
+- Новый device test ещё не выполнен: тот же APK в обеих копиях, доступ Android,
+  основной: явный выбор копии + auto-forward; рабочий: auto-open; compact в обеих
+  по желанию. Share ссылки в основной Bridge должен один раз передать её,
+  рабочая копия — открыть Ozon. Compact испытывать после нового cold launch.
+- Отдельно ожидаются: тумблеры OFF (ручной режим), paused target, отсутствующий
+  магазин, rotation, warm launch, обратное направление с auto-forward в обеих
+  копиях (protected receiver не пересылает обратно). Полноценный невидимый
+  background service не реализован: обычная dialog Activity, без FGS.
+
 ## 0.1.9-ozon-short-links — 2026-10-19
 
 - Владелец подтвердил: Report.txt от 0.1.8 получен в рабочей копии после
