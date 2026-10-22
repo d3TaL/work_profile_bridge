@@ -9,12 +9,23 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 25
-        versionName = "0.4.0-auto-banks-report"
+        versionCode = 26
+        versionName = "0.4.1-stable-signing"
     }
     buildFeatures { compose = true; buildConfig = true }
+    val releaseStore = providers.environmentVariable("PLB_RELEASE_KEYSTORE_PATH").orNull
+    if (releaseStore != null) {
+        signingConfigs.create("persistentRelease") {
+            storeFile = file(releaseStore)
+            storePassword = providers.environmentVariable("PLB_RELEASE_PASSWORD").get()
+            keyAlias = "profile-bridge-release"
+            keyPassword = providers.environmentVariable("PLB_RELEASE_PASSWORD").get()
+            storeType = "PKCS12"
+        }
+    }
     buildTypes {
         release {
+            if (releaseStore != null) signingConfig = signingConfigs.getByName("persistentRelease")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))

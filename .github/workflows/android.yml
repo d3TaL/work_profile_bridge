@@ -28,14 +28,47 @@ jobs:
         with:
           packages: 'platform-tools'
       - run: sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
+      - name: Restore persistent release key (trusted master only)
+        if: github.repository == 'd3TaL/work_profile_bridge' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        env:
+          KEYSTORE_B64: ${{ secrets.PLB_RELEASE_KEYSTORE_B64 }}
+          KEY_PASSWORD: ${{ secrets.PLB_RELEASE_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE_B64"
+          test -n "$KEY_PASSWORD"
+          umask 077
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/profile-bridge-release.p12"
+          printf 'PLB_RELEASE_KEYSTORE_PATH=%s\n' "$RUNNER_TEMP/profile-bridge-release.p12" >> "$GITHUB_ENV"
       - name: Test, lint and build
+        env:
+          PLB_RELEASE_PASSWORD: ${{ github.repository == 'd3TaL/work_profile_bridge' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && secrets.PLB_RELEASE_PASSWORD || '' }}
         run: bash ./gradlew :core:test :app:assembleDebug :app:lintDebug :app:assembleRelease :app:lintRelease --dependency-verification strict
+      - name: Verify persistent release signature
+        if: github.repository == 'd3TaL/work_profile_bridge' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk > "$RUNNER_TEMP/release-signature.txt"
+          python3 - "$RUNNER_TEMP/release-signature.txt" <<'PY'
+          import pathlib, re, sys
+          text = pathlib.Path(sys.argv[1]).read_text()
+          pins = re.findall(r"Signer #\d+ certificate SHA-256 digest: ([0-9a-f]+)", text)
+          assert pins == ["11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7"], "Unexpected release signer"
+          print("Persistent release signer verified")
+          PY
       - name: Prepare APK artifacts
         shell: bash
         run: |
           mkdir -p ci-artifacts
           cp app/build/outputs/apk/debug/app-debug.apk ci-artifacts/profile-bridge-debug.apk
-          cp app/build/outputs/apk/release/app-release-unsigned.apk ci-artifacts/profile-bridge-release-unsigned.apk
+          if [ -n "${PLB_RELEASE_KEYSTORE_PATH:-}" ]; then
+            cp app/build/outputs/apk/release/app-release.apk ci-artifacts/profile-bridge-release.apk
+            cp "$RUNNER_TEMP/release-signature.txt" ci-artifacts/RELEASE_SIGNATURE.txt
+          else
+            cp app/build/outputs/apk/release/app-release-unsigned.apk ci-artifacts/profile-bridge-release-unsigned.apk
+          fi
           cd ci-artifacts
           sha256sum *.apk > SHA256SUMS
           printf 'commit=%s\nrun=%s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > BUILD.txt
@@ -46,6 +79,10 @@ jobs:
           path: ci-artifacts/
           if-no-files-found: error
           retention-days: 14
+      - name: Remove private signing material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/profile-bridge-release.p12"
       - name: Upload verification reports
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
