@@ -1,5 +1,22 @@
 # Проверки восстановленной версии
 
+## 0.4.2-setup-wizard — 2026-10-22
+
+- APK commit 20bc151; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39724346994 SUCCESS.
+- XML 35 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues;
+  assemble Debug/Release PASS, strict verification, release R8.
+- APK Download/artifacts/profile-bridge-0.4.2-setup-wizard-20bc151-release.apk;
+  SHA-256 f8a0641b7b33b8a0d8e02aef29522895560e9b9417018f3f123f0b574a9c0153.
+  Оба оригинальных SHA256SUMS OK. apksig verified=true errors=[], signer
+  11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7,
+  совпадает с 0.4.1. VersionCode 27 > 26, applicationId неизменён.
+- Мастер 4 шага, Back/Next, применение пресета без закрытия, Settings app links
+  текущей копии + fallback, подготовка публичного test без отправки.
+  Факт завершения не означает успешную доставку; настройки других пакетов далее.
+- Device установка/in-place update не выполнялись. Проверить обновление
+  поверх release 0.4.1, сохранение настроек, ручное открытие мастера, все шаги,
+  возврат из Android settings и публичный маршрут в рабочей/Knox копиях.
+
 ## 0.4.1-stable-signing — 2026-10-22
 
 - Создан отдельный постоянный RSA-3072 PKCS12 release ключ без перезаписи
