@@ -1,5 +1,26 @@
 # Проверки восстановленной версии
 
+## 0.4.1-stable-signing — 2026-10-22
+
+- Создан отдельный постоянный RSA-3072 PKCS12 release ключ без перезаписи
+  существующих secrets, сохранён в PLB_RELEASE_KEYSTORE_B64/PLB_RELEASE_PASSWORD.
+  Shelter ключи не менялись. Private material не в git/APK artifacts.
+- Закрытая owner backup: Download/profile-bridge-signing-backup.zip (p12,
+  пароль, публичный cert); перенести в защищённое офлайн-хранилище.
+- APK commit 8955889; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39719548374 SUCCESS.
+- XML 35 tests, 0 failures/errors/skipped; Debug/Release lint 0 issues.
+  Debug/Release assemble, strict verification, Release R8 PASS.
+- CI apksigner exact certificate pin PASS; локальная apksig повторная проверка
+  downloaded release verified=true errors=[], signer SHA-256:
+  11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7.
+- APK Download/artifacts/profile-bridge-0.4.1-stable-signing-8955889-release.apk;
+  SHA-256 2cf7a0d83d68152f41c1f714138750e750ca4d52205c9a981dacefd737d041b7.
+  Оба оригинальных SHA256SUMS OK. Release теперь подписан, debug по-прежнему
+  временный и для обычных обновлений владельца не используется.
+- Переход с debug требует однократной переустановки только Bridge по решению
+  владельца; далее release должен обновляться с тем же signer и растущим vc.
+  Фактическая установка и in-place update ещё не испытаны. Процедура SIGNING.md.
+
 ## 0.4.0-auto-banks-report — повторная проверка выпуска
 
 - Первый run 39267981852 упал на Kotlin expression в записи отчёта; исправлен
