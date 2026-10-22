@@ -20,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import android.os.UserHandle
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,13 +32,19 @@ import dev.profilebridge.app.platform.ProfileAccess
 fun SetupScreen(role: String, targets: List<UserHandle>, samsung: Boolean, access: ProfileAccess,
                 main: Boolean, managed: Boolean, selectedTarget: UserHandle?, shareRoute: Boolean,
                 applyPreset: (Int, UserHandle?) -> Unit,
-                refresh: () -> Unit, requestAccess: () -> Unit, done: () -> Unit) {
+                refresh: () -> Unit, requestAccess: () -> Unit, openLinkSettings: () -> Unit,
+                prepareTest: () -> Unit, message: Int?, done: () -> Unit) {
     var choice by rememberSaveable { mutableIntStateOf(0) }
+    var step by rememberSaveable { mutableIntStateOf(0) }
+    BackHandler(enabled = step > 0) { step-- }
     MaterialTheme {
         Scaffold { insets ->
             Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Text(stringResource(R.string.setup_title), style = MaterialTheme.typography.headlineMedium)
+                Text(stringResource(R.string.wizard_step, step + 1, 4), style = MaterialTheme.typography.labelLarge)
+                message?.let { Text(stringResource(it)) }
+                if (step == 0) {
                 Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -55,6 +62,9 @@ fun SetupScreen(role: String, targets: List<UserHandle>, samsung: Boolean, acces
                     Text(stringResource(R.string.setup_samsung), style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(R.string.setup_samsung_note))
                 }
+                }
+                if (step == 2) {
+                Text(stringResource(R.string.wizard_android), style = MaterialTheme.typography.titleLarge)
                 Text(stringResource(when (access) {
                     ProfileAccess.GRANTED -> R.string.profile_access_granted
                     ProfileAccess.REQUESTABLE -> R.string.profile_access_requestable
@@ -65,6 +75,11 @@ fun SetupScreen(role: String, targets: List<UserHandle>, samsung: Boolean, acces
                     Text(stringResource(R.string.profile_request_access))
                 }
                 Text(stringResource(R.string.setup_finish_note))
+                OutlinedButton(onClick = openLinkSettings) { Text(stringResource(R.string.wizard_links)) }
+                Text(stringResource(R.string.wizard_links_note))
+                OutlinedButton(onClick = refresh) { Text(stringResource(R.string.refresh)) }
+                }
+                if (step == 1) {
                 Text(stringResource(R.string.preset_title), style = MaterialTheme.typography.titleLarge)
                 if (main) {
                     Text(stringResource(R.string.preset_sender_note))
@@ -100,7 +115,17 @@ fun SetupScreen(role: String, targets: List<UserHandle>, samsung: Boolean, acces
                     }
                 }
                 OutlinedButton(onClick = { applyPreset(5, null) }) { Text(stringResource(R.string.preset_manual)) }
-                Button(onClick = done, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.setup_continue)) }
+                }
+                if (step == 3) {
+                    Text(stringResource(R.string.wizard_check), style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.wizard_check_note))
+                    OutlinedButton(onClick = prepareTest) { Text(stringResource(R.string.wizard_test)) }
+                    Text(stringResource(R.string.wizard_banks_note))
+                    Button(onClick = done, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.wizard_done)) }
+                } else Button(onClick = { step++ }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.setup_continue))
+                }
+                if (step > 0) OutlinedButton(onClick = { step-- }) { Text(stringResource(R.string.wizard_back)) }
             }
         }
     }

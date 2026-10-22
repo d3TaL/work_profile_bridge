@@ -176,6 +176,8 @@ open class MainActivity : ComponentActivity() {
                     applyPreset = ::applyPreset,
                     samsung = Build.MANUFACTURER.equals("samsung", true), access = profileAccess,
                     refresh = ::refresh, requestAccess = ::requestAccess,
+                    openLinkSettings = ::openLinkSettings, message = message,
+                    prepareTest = { showSetup = false; edit("https://www.ozon.ru/"); message = R.string.wizard_test_ready },
                     done = {
                         prefs.edit().putBoolean("setup-intro-done", true).apply()
                         showSetup = false
@@ -310,8 +312,20 @@ open class MainActivity : ComponentActivity() {
             edit.putLong("target-serial", targetSerial)
         }
         edit.apply()
-        showSetup = false
-        prefs.edit().putBoolean("setup-intro-done", true).apply()
+        message = R.string.wizard_preset_saved
+    }
+
+    private fun openLinkSettings() {
+        val uri = android.net.Uri.fromParts("package", packageName, null)
+        try {
+            if (Build.VERSION.SDK_INT >= 31) {
+                startActivity(Intent(android.provider.Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, uri))
+            } else startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri))
+        } catch (_: ActivityNotFoundException) {
+            try { startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS, uri)) }
+            catch (_: ActivityNotFoundException) { message = R.string.open_failed }
+            catch (_: SecurityException) { message = R.string.open_failed }
+        } catch (_: SecurityException) { message = R.string.open_failed }
     }
 
     private fun requestAccess() {
