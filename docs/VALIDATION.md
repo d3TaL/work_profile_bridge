@@ -1,5 +1,29 @@
 # Проверки восстановленной версии
 
+## 0.4.3-friendly-setup — 2026-10-24
+
+- APK commit 691a696; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/40123215936 SUCCESS.
+- Скачанные XML: 35 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8; CI signer check PASS.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.4.3-friendly-setup-691a696-release.apk`.
+- SHA-256 `88a28c6aeb4726135598b0d33a3d14d8362a01026b81001ce8c9fe6c91497c39`.
+  Оригиналы `run-40123215936/profile-bridge-apks-37/`, оба SHA256SUMS OK.
+- Повторная проверка downloaded release apksig: verified=true errors=[], signer
+  `11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7`,
+  совпадает с 0.4.1/0.4.2. VersionCode 28, applicationId прежний.
+- Мастер разделён на 9 коротких страниц: объяснение маршрутов и ручного/авто
+  поведения, роль, копии, DPC обмен, пресет, Android доступ, web links, тест.
+  Длинные объяснения под «Подробнее». Guide choice — не детекция администратора.
+- Наличие Shelter/Island проверяется точечно только в текущем профиле, в IO;
+  если оба найдены, две кнопки открытия. После возврата detection обновляется.
+  Новый launcher Intent к проверенному exported компоненту, RESUMED, без payload.
+- Shelter пункт сверён с исходниками и прежним тестом владельца; Island guide
+  проверен по исходникам d63538212a9f417c180bdb9258c0f5461de53c27, физический
+  запуск/настройка Island не проверены. Package presence не доказывает DPC role.
+- Device тесты ожидаются: обновление поверх release, no-manager/Shelter/Island/
+  оба варианта, запуск/возврат/refresh, rotation шага, Knox consent и публичный
+  тест ссылки. Агент ничего не устанавливал, системные политики не менялись.
+
 ## 0.4.2-setup-wizard — 2026-10-22
 
 - APK commit 20bc151; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/39724346994 SUCCESS.
