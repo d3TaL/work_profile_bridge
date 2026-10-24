@@ -134,3 +134,16 @@ ProfileDiagnostics, manifest, strings/version и BankLinksTest. Новый VIEW
 Signature permission неизменна. Тесты: raw preservation, отказ других схем,
 opaque/userinfo/port/fragment, запрет shop auto-open. Diff:
 `git diff 04f0573..HEAD -- app core`. Совместимость и callback требуют телефона.
+# 0.4.3 — явное открытие менеджеров
+
+Прочитан android-intent-security SKILL.md commit
+5bda39f154fb859a08d45e2392f3568e049f83fb (metadata 2026-09-25).
+Область: контролируемый запуск Activity, priority medium. Scope:
+ProfileManagers, MainActivity, SetupScreen, manifest queries, strings/version.
+Проверенные фиксированные package, PM в IO, компонент exported/enabled/без
+permission, новый MAIN/LAUNCHER после явного нажатия и проверки RESUMED.
+Результат getLaunchIntentForPackage не запускается как есть. Входящие Intent
+не участвуют в выборе пакета; routing/sanitizer не изменены. DPC права не выдаются.
+Новых permissions/зависимостей нет. Diff: `git diff 20bc151..HEAD -- app`.
+CI compile/lint и smoke на Shelter/Island/no-manager/both/возврат/rotation
+различаются: физические проверки ещё ожидаются.

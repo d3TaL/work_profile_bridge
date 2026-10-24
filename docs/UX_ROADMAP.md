@@ -1,5 +1,30 @@
 # Порционный UX выпуск
 
+## 0.4.3 — короткий мастер и менеджеры профилей
+
+9 шагов: маршруты, ручной/авто, текущая роль, добавление копии,
+разрешение обмена в DPC, пресет, Android consent, ссылки, тест.
+Основной текст короткий; справки раскрываются отдельно. Scroll сбрасывается
+при смене шага, номер шага и выбранная инструкция переживают rotation.
+Согласие public SEND для Knox остаётся явным, банковские настройки отдельно.
+
+ProfileManagers читает только два allowlisted package в текущем профиле:
+net.typeblog.shelter, com.oasisfeng.island. Queries точечные, без QUERY_ALL_PACKAGES.
+PackageManager запросы в IO, refresh при возврате. Наличие не доказывает DPC
+owner/готовность; отсутствие не доказывает отсутствие в другом профиле.
+Открытие отдельной кнопкой, новый MAIN/LAUNCHER к проверенному exported
+компоненту пакета, без чужих extras/flags, только RESUMED. Нет silent launch.
+Если найдены оба приложения, показываются обе кнопки; инструкция выбирается
+независимо. Установку и включение DPC политик делает пользователь в менеджере.
+
+Shelter: текущие исходники app/src/main/res/values-ru-rRU/strings.xml и ранее
+подтверждённый владельцем контекстный пункт рабочей копии «Разрешить работу между
+профилями». Island: upstream d63538212a9f417c180bdb9258c0f5461de53c27,
+assembly/build.gradle (applicationId), IslandSettingsActivity.kt и pref_island.xml:
+Settings рабочего Island → Manage cross-land privilege → Bridge → Close.
+Не File Shuttle. Названия/наличие зависят от версии, физический Island тест
+не выполнен. Минигайд отделяет DPC allowlist от Android consent.
+
 ## 0.4.2 — базовый пошаговый мастер
 
 Четыре шага Back/Next, saveable только шаг/choice. Пресет сохраняется без

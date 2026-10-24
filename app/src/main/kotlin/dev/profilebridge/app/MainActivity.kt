@@ -32,6 +32,8 @@ import dev.profilebridge.app.platform.ProfileSendResult
 import dev.profilebridge.app.platform.StoreDelivery
 import dev.profilebridge.app.platform.ProfileRole
 import dev.profilebridge.app.platform.ProfileRoles
+import dev.profilebridge.app.platform.ProfileManager
+import dev.profilebridge.app.platform.ProfileManagers
 import dev.profilebridge.app.ui.BridgeScreen
 import dev.profilebridge.app.ui.SetupScreen
 import dev.profilebridge.app.ui.TransferScreen
@@ -55,6 +57,8 @@ open class MainActivity : ComponentActivity() {
     protected open val trustedStoreEntry: Boolean = false
     private val probe: ProbeViewModel by viewModels()
     private var targets by mutableStateOf<List<UserHandle>>(emptyList())
+    private var profileManagers by mutableStateOf<List<ProfileManager>?>(null)
+    private var managersJob: Job? = null
     private var message by mutableStateOf<Int?>(null)
     private var profileAccess by mutableStateOf(ProfileAccess.UNKNOWN)
     private var url by mutableStateOf("")
@@ -171,6 +175,10 @@ open class MainActivity : ComponentActivity() {
                 }
             } else if (showSetup) {
                 SetupScreen(role = roleLabel(), targets = targets,
+                    managers = profileManagers,
+                    openManager = { manager -> lifecycleScope.launch {
+                        if (!ProfileManagers.open(this@MainActivity, manager)) message = R.string.setup_manager_open_failed
+                    } },
                     main = role == ProfileRole.MAIN, managed = role == ProfileRole.MANAGED,
                     selectedTarget = targets.firstOrNull { serial(it) == targetSerial }, shareRoute = shareRoute,
                     applyPreset = ::applyPreset,
@@ -520,6 +528,11 @@ open class MainActivity : ComponentActivity() {
     private fun refresh() {
         targets = ProfileDiagnostics.targets(this)
         profileAccess = ProfileDiagnostics.access(this)
+        managersJob?.cancel()
+        profileManagers = null
+        managersJob = lifecycleScope.launch {
+            profileManagers = ProfileManagers.installed(this@MainActivity)
+        }
     }
     private fun sendToCopy(target: UserHandle) {
         val parsed = (SafeLink.parseRouting(url) as? LinkParseResult.Accepted)?.link
