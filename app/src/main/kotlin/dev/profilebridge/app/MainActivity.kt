@@ -81,6 +81,7 @@ open class MainActivity : ComponentActivity() {
     private var transferApp by mutableStateOf<String?>(null)
     private var transferFailed by mutableStateOf(false)
     private var showApps by mutableStateOf(false)
+    private var homeTab by mutableStateOf(0)
     private var appModes by mutableStateOf<Map<String, AppMode>>(emptyMap())
     private var retryLink: SafeLink? = null
     private var retryDeadline = 0L
@@ -155,7 +156,7 @@ open class MainActivity : ComponentActivity() {
                 AppsScreen(appModes, apply = { packages, mode ->
                     AppRules.set(this, packages, mode)
                     appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
-                }, close = { showApps = false })
+                }, close = { showApps = false }, selectTab = { selectHomeTab(it) })
             } else if (transfer != null) {
                 TransferScreen(transfer, transferFailed, expired = message == R.string.transfer_expired,
                     retryEnabled = retryLink != null, retry = {
@@ -192,6 +193,7 @@ open class MainActivity : ComponentActivity() {
                     })
             } else if (!transit) {
             BridgeScreen(
+                tab = homeTab, selectTab = ::selectHomeTab,
                 openApps = {
                     appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
                     showApps = true
@@ -274,6 +276,7 @@ open class MainActivity : ComponentActivity() {
         lifecycleScope.launch { lifecycle.withResumed { processPending() } }
     }
     override fun onNewIntent(intent: Intent) {
+        homeTab = 0
         showApps = false
         showSetup = false
         super.onNewIntent(intent); setIntent(intent); receive(intent)
@@ -533,6 +536,11 @@ open class MainActivity : ComponentActivity() {
         managersJob = lifecycleScope.launch {
             profileManagers = ProfileManagers.installed(this@MainActivity)
         }
+    }
+    private fun selectHomeTab(tab: Int) {
+        homeTab = tab
+        showApps = tab == 1
+        if (showApps) appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
     }
     private fun sendToCopy(target: UserHandle) {
         val parsed = (SafeLink.parseRouting(url) as? LinkParseResult.Accepted)?.link

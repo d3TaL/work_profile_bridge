@@ -25,6 +25,7 @@ import dev.profilebridge.app.platform.ProfileAccess
 
 @Composable
 fun BridgeScreen(
+    tab: Int, selectTab: (Int) -> Unit,
     openSetup: () -> Unit,
     openApps: () -> Unit,
     targets: List<UserHandle>, message: Int?, device: String, profileRole: String,
@@ -58,10 +59,11 @@ fun BridgeScreen(
                 },
                 dismissButton = { TextButton(onClick = dismissDebug) { Text(stringResource(R.string.close_report)) } })
         }
-        Scaffold { insets ->
+        Scaffold(bottomBar = { BottomBar(tab, selectTab) }) { insets ->
             Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.title), style = MaterialTheme.typography.headlineSmall)
+                if (tab == 0) {
                 Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer)) {
                     Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -97,15 +99,14 @@ fun BridgeScreen(
                         OutlinedButton(onClick = { openHandler(handler) }) { Text(stringResource(R.string.handler, handler.packageName)) }
                     }
                 } else Text(stringResource(R.string.home_share_hint))
+                }
+                if (tab == 2) {
+                Button(onClick = openSetup) { Text(stringResource(R.string.setup_title)) }
                 OutlinedButton(onClick = { advanced = !advanced }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(if (advanced) R.string.home_hide_advanced else R.string.home_advanced))
                 }
                 if (advanced) {
-                Text(stringResource(R.string.intro))
-                Text(stringResource(R.string.profile_note))
-                Text(stringResource(R.string.profile_send_note))
                 Text(stringResource(R.string.profiles, targets.size))
-                Text(stringResource(R.string.profile_note))
                 Text(stringResource(when (profileAccess) {
                     ProfileAccess.GRANTED -> R.string.profile_access_granted
                     ProfileAccess.REQUESTABLE -> R.string.profile_access_requestable
@@ -153,6 +154,7 @@ fun BridgeScreen(
                 OutlinedButton(onClick = previewDebug, enabled = debugEnabled) { Text(stringResource(R.string.report_title)) }
                 }
                 Text(stringResource(R.string.privacy))
+                }
             }
         }
     }

@@ -1,15 +1,17 @@
 <resources>
     <string name="app_name">Profile Bridge</string>
+    <string name="nav_home">Главная</string>
+    <string name="nav_settings">Настройки</string>
     <string name="setup_more">Подробнее</string>
     <string name="setup_routes_title">Куда отправлять ссылки?</string>
     <string name="setup_route_work">Рабочий профиль · Shelter / Island</string>
-    <string name="setup_route_work_body">Откройте ссылку через Bridge — он передаст её прямо в рабочую копию.</string>
+    <string name="setup_route_work_body">Ссылка → Bridge → рабочая копия.</string>
     <string name="setup_route_knox">Secure Folder Knox · Samsung</string>
-    <string name="setup_route_knox_body">Bridge откроет «Поделиться». Выберите Bridge внутри папки — ссылка откроется там.</string>
+    <string name="setup_route_knox_body">Ссылка → «Поделиться» → Bridge в папке.</string>
     <string name="setup_route_entry">Начать можно через «Поделиться → Bridge» в любом приложении.</string>
     <string name="setup_modes_title">С кнопкой или автоматически?</string>
     <string name="setup_mode_manual_body">Вы сами нажимаете «Передать» и «Открыть».</string>
-    <string name="setup_mode_auto_body">После настройки Bridge передаёт ссылку и открывает приложение сам. В Knox выбор в «Поделиться» остаётся за вами.</string>
+    <string name="setup_mode_auto_body">Передача и открытие без кнопок. В Knox вручную выбираете получателя.</string>
     <string name="setup_location_title">Где эта копия?</string>
     <string name="setup_location_body">Эту копию и получателя настроим отдельно.</string>
     <string name="setup_add_copy_title">Добавьте вторую копию</string>
