@@ -46,7 +46,7 @@ fun SetupScreen(role: String, targets: List<UserHandle>, samsung: Boolean, acces
     var guide by rememberSaveable { mutableIntStateOf(0) }
     val manager = if (guide == 0) ProfileManager.SHELTER else ProfileManager.ISLAND
     BackHandler(enabled = step > 0) { step-- }
-    MaterialTheme {
+    BridgeTheme {
         Scaffold { insets ->
             key(step) {
                 Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(24.dp),

@@ -3,6 +3,7 @@ package dev.profilebridge.app.ui
 import android.os.UserHandle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.profilebridge.app.R
@@ -44,9 +46,7 @@ fun BridgeScreen(
     compactMode: Boolean, setCompactMode: (Boolean) -> Unit,
     selectedTarget: UserHandle?, selectTarget: (UserHandle) -> Unit,
 ) {
-    var advanced by rememberSaveable { mutableStateOf(false) }
-    var diagnostics by rememberSaveable { mutableStateOf(false) }
-    MaterialTheme {
+    BridgeTheme {
         debugReport?.let { report ->
             AlertDialog(onDismissRequest = dismissDebug,
                 title = { Text(stringResource(R.string.report_title)) },
@@ -60,100 +60,110 @@ fun BridgeScreen(
                 dismissButton = { TextButton(onClick = dismissDebug) { Text(stringResource(R.string.close_report)) } })
         }
         Scaffold(bottomBar = { BottomBar(tab, selectTab) }) { insets ->
-            Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(20.dp),
+            Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.title), style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(if (tab == 2) R.string.nav_settings else R.string.title),
+                    style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                message?.let { MessageBanner(it) }
                 if (tab == 0) {
-                Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer)) {
-                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(profileRole, style = MaterialTheme.typography.titleMedium)
-                        val index = targets.indexOf(selectedTarget)
-                        Text(when {
-                            shareRoute -> stringResource(R.string.home_knox)
-                            index >= 0 -> stringResource(R.string.home_direct, index + 1)
-                            else -> stringResource(R.string.home_no_target)
-                        })
-                        Text(stringResource(if (autoForward) R.string.home_auto else R.string.home_manual))
-                        Button(onClick = openSetup) { Text(stringResource(R.string.home_setup)) }
-                    }
-                }
-                message?.let { Text(stringResource(it)) }
-                OutlinedButton(onClick = openApps, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.apps_title)) }
-                linkError?.let { Text(stringResource(it)) }
-                Text(stringResource(R.string.link_title), style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(value = url, onValueChange = changeUrl, modifier = Modifier.fillMaxWidth(), singleLine = true,
-                    label = { Text(stringResource(R.string.url)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false))
-                if (url.isNotBlank()) {
-                    if (shareRoute) {
-                        Button(onClick = shareLink) { Text(stringResource(R.string.share_link_title)) }
-                    } else {
-                        targets.forEachIndexed { index, target ->
-                            Button(onClick = { sendToCopy(target) }) { Text(stringResource(R.string.profile_send, index + 1)) }
+                    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(profileRole, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                            val index = targets.indexOf(selectedTarget)
+                            Text(when {
+                                shareRoute -> stringResource(R.string.home_knox)
+                                index >= 0 -> stringResource(R.string.home_direct, index + 1)
+                                else -> stringResource(R.string.home_no_target)
+                            })
+                            Text(stringResource(if (autoForward) R.string.home_auto else R.string.home_manual),
+                                style = MaterialTheme.typography.bodyMedium)
+                            FilledTonalButton(onClick = openSetup, modifier = Modifier.padding(top = 6.dp)) {
+                                Text(stringResource(R.string.home_setup))
+                            }
                         }
                     }
-                    OutlinedButton(onClick = inspect) { Text(stringResource(R.string.inspect)) }
-                    OutlinedButton(onClick = clear) { Text(stringResource(R.string.clear)) }
-                    handlers.forEach { handler ->
-                        OutlinedButton(onClick = { openHandler(handler) }) { Text(stringResource(R.string.handler, handler.packageName)) }
+                    linkError?.let { MessageBanner(it, error = it != R.string.open_ok) }
+                    SectionCard(R.string.link_title) {
+                        OutlinedTextField(value = url, onValueChange = changeUrl, modifier = Modifier.fillMaxWidth(), singleLine = true,
+                            label = { Text(stringResource(R.string.url)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, autoCorrectEnabled = false))
+                        if (url.isNotBlank()) {
+                            if (shareRoute) {
+                                Button(onClick = shareLink, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.share_link_title)) }
+                            } else {
+                                targets.forEachIndexed { index, target ->
+                                    Button(onClick = { sendToCopy(target) }, modifier = Modifier.fillMaxWidth()) {
+                                        Text(stringResource(R.string.profile_send, index + 1))
+                                    }
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = inspect, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.inspect)) }
+                                OutlinedButton(onClick = clear, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.clear)) }
+                            }
+                            handlers.forEach { handler ->
+                                FilledTonalButton(onClick = { openHandler(handler) }, modifier = Modifier.fillMaxWidth()) {
+                                    Text(stringResource(R.string.handler, handler.packageName))
+                                }
+                            }
+                        } else Text(stringResource(R.string.home_share_hint), style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                } else Text(stringResource(R.string.home_share_hint))
+                    OutlinedButton(onClick = openApps, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.apps_title)) }
                 }
                 if (tab == 2) {
-                Button(onClick = openSetup) { Text(stringResource(R.string.setup_title)) }
-                OutlinedButton(onClick = { advanced = !advanced }, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(if (advanced) R.string.home_hide_advanced else R.string.home_advanced))
-                }
-                if (advanced) {
-                Text(stringResource(R.string.profiles, targets.size))
-                Text(stringResource(when (profileAccess) {
-                    ProfileAccess.GRANTED -> R.string.profile_access_granted
-                    ProfileAccess.REQUESTABLE -> R.string.profile_access_requestable
-                    ProfileAccess.NOT_AVAILABLE -> R.string.profile_settings_unavailable
-                    ProfileAccess.UNKNOWN -> R.string.profile_access_unknown
-                }))
-                OutlinedButton(onClick = requestProfileAccess, enabled = profileAccess == ProfileAccess.REQUESTABLE) {
-                    Text(stringResource(R.string.profile_request_access))
-                }
-                targets.forEachIndexed { index, handle ->
-                    OutlinedButton(onClick = { openCopy(handle) }) { Text(stringResource(R.string.open_copy, index + 1)) }
-                    OutlinedButton(onClick = { selectTarget(handle) }) {
-                        Text(stringResource(if (selectedTarget == handle) R.string.auto_target_selected else R.string.auto_target, index + 1))
+                    Button(onClick = openSetup, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.setup_title)) }
+                    SectionCard(R.string.settings_send) {
+                        SwitchRow(R.string.auto_forward, autoForward, setAutoForward)
+                        SettingHelp(R.string.auto_forward_note)
+                        targets.forEachIndexed { index, handle ->
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { selectTarget(handle) }, modifier = Modifier.weight(1f)) {
+                                    Text(stringResource(if (selectedTarget == handle) R.string.auto_target_selected else R.string.auto_target, index + 1))
+                                }
+                                TextButton(onClick = { openCopy(handle) }) { Text(stringResource(R.string.open_copy, index + 1)) }
+                            }
+                        }
+                        SwitchRow(R.string.share_route, shareRoute, setShareRoute)
+                        SettingHelp(R.string.share_route_note)
+                        OutlinedButton(onClick = shareLink, enabled = url.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.share_link_title))
+                        }
                     }
-                }
-                Text(stringResource(R.string.auto_forward))
-                Switch(checked = autoForward, onCheckedChange = setAutoForward)
-                SettingHelp(R.string.auto_forward_note)
-                Text(stringResource(R.string.share_route))
-                Switch(checked = shareRoute, onCheckedChange = setShareRoute)
-                SettingHelp(R.string.share_route_note)
-                Text(stringResource(R.string.compact_mode))
-                Switch(checked = compactMode, onCheckedChange = setCompactMode)
-                SettingHelp(R.string.compact_note)
-                OutlinedButton(onClick = shareLink, enabled = url.isNotBlank()) {
-                    Text(stringResource(R.string.share_link_title))
-                }
-                Text(stringResource(R.string.auto_open_stores))
-                Switch(checked = autoOpenStores, onCheckedChange = setAutoOpenStores)
-                SettingHelp(R.string.auto_open_stores_note)
-                Text(stringResource(R.string.auto_open_shares))
-                Switch(checked = autoOpenShares, onCheckedChange = setAutoOpenShares)
-                SettingHelp(R.string.auto_open_shares_note)
-                }
-                OutlinedButton(onClick = { diagnostics = !diagnostics }, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(if (diagnostics) R.string.home_hide_diagnostics else R.string.home_diagnostics))
-                }
-                if (diagnostics) {
-                Text(device)
-                Text(stringResource(R.string.profiles, targets.size))
-                OutlinedButton(onClick = refresh) { Text(stringResource(R.string.refresh)) }
-                Text(stringResource(R.string.debug_mode))
-                Switch(checked = debugEnabled, onCheckedChange = setDebugEnabled)
-                Text(stringResource(R.string.debug_note))
-                OutlinedButton(onClick = previewDebug, enabled = debugEnabled) { Text(stringResource(R.string.report_title)) }
-                }
-                Text(stringResource(R.string.privacy))
+                    SectionCard(R.string.settings_receive) {
+                        SwitchRow(R.string.auto_open_stores, autoOpenStores, setAutoOpenStores)
+                        SettingHelp(R.string.auto_open_stores_note)
+                        SwitchRow(R.string.auto_open_shares, autoOpenShares, setAutoOpenShares)
+                        SettingHelp(R.string.auto_open_shares_note)
+                        SwitchRow(R.string.compact_mode, compactMode, setCompactMode)
+                        SettingHelp(R.string.compact_note)
+                    }
+                    SectionCard(R.string.home_advanced) {
+                        Text(stringResource(R.string.profiles, targets.size))
+                        Text(stringResource(when (profileAccess) {
+                            ProfileAccess.GRANTED -> R.string.profile_access_granted
+                            ProfileAccess.REQUESTABLE -> R.string.profile_access_requestable
+                            ProfileAccess.NOT_AVAILABLE -> R.string.profile_settings_unavailable
+                            ProfileAccess.UNKNOWN -> R.string.profile_access_unknown
+                        }), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = requestProfileAccess, enabled = profileAccess == ProfileAccess.REQUESTABLE,
+                                modifier = Modifier.weight(1f)) { Text(stringResource(R.string.profile_request_access)) }
+                            OutlinedButton(onClick = refresh) { Text(stringResource(R.string.refresh)) }
+                        }
+                    }
+                    SectionCard(R.string.home_diagnostics) {
+                        Text(device, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        SwitchRow(R.string.debug_mode, debugEnabled, setDebugEnabled)
+                        Text(stringResource(R.string.debug_note), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        OutlinedButton(onClick = previewDebug, enabled = debugEnabled, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.report_title))
+                        }
+                    }
+                    Text(stringResource(R.string.privacy), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -164,5 +174,6 @@ fun BridgeScreen(
 private fun SettingHelp(text: Int) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     TextButton(onClick = { expanded = !expanded }) { Text(stringResource(R.string.setup_more)) }
-    if (expanded) Text(stringResource(text))
+    if (expanded) Text(stringResource(text), style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
 }

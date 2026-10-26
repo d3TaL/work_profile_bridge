@@ -29,7 +29,7 @@ import dev.profilebridge.app.R
 @Composable
 fun TransferScreen(appName: String, failed: Boolean, expired: Boolean, retryEnabled: Boolean,
                    retry: () -> Unit, close: () -> Unit) {
-    MaterialTheme {
+    BridgeTheme {
         Scaffold { insets ->
             Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
                 MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface)))
