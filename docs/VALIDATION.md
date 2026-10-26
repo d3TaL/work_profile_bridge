@@ -1,5 +1,25 @@
 # Проверки восстановленной версии
 
+## 0.5.2 — импорт архива владельца, 2026-10-26
+
+- Источник `/storage/emulated/0/Download/work_profile_bridge.zip`.
+  Сравнение с чистым checkout: 17 новых/изменённых файлов, отсутствующих
+  tracked файлов нет; вложенная .git не импортировалась. Runtime routing,
+  CI workflow и persistent signing сохранены без изменений.
+- APK commit `5f1120c`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/40374011432 SUCCESS.
+- XML: 35 tests, 0 failures/errors/skipped; Debug/Release lint 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8, signer pin PASS.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.5.2-apps-screen-5f1120c-release.apk`.
+- SHA-256 `f30d919873a750631506a0a21d3aa6ad308630dc96764fb0cbf417cc4ea1ce16`.
+  Оба оригинальных SHA256SUMS OK. apksig verified=true errors=[], signer
+  `11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7`.
+- VersionCode 31, прежний applicationId/certificate: поддерживает обновление
+  поверх прежних persistent release. Установку агент не выполнял.
+- На телефоне проверить тему light/dark/Material You, вкладки, dialog режима,
+  поиск/очистку, bulk selection и отдельное согласие автоматических банков.
+  Ранее приведённая запись об отсутствии сборки относится к архиву до импорта;
+  данный CI — фактическая проверка новой версии.
+
 ## 0.5.1-clean-ui / 0.5.2-apps-screen — 2026-10-26
 
 - Переделаны тема, Главная, Настройки и экран «Приложения»; маршрутизация не менялась.
