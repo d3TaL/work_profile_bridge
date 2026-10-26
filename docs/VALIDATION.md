@@ -1,5 +1,24 @@
 # Проверки восстановленной версии
 
+## 0.5.0-bottom-navigation — 2026-10-26
+
+- APK commit ab42823; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/40298241268 SUCCESS.
+- XML: 35 tests, 0 failures/errors/skipped; lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict verification, Release R8, CI signature pin PASS.
+- APK Download/artifacts/profile-bridge-0.5.0-bottom-navigation-ab42823-release.apk;
+  SHA-256 df9b1100105df35a4fb0136b19bef3f5866c4677c9a1f453eede85c4e7889398.
+  Оба SHA256SUMS OK; apksig verified=true errors=[], постоянный signer
+  11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7.
+- Нижняя навигация Главная/Приложения/Настройки; входящий Intent возвращает
+  Главную. Настройки отделены от ссылки, help скрыт под Подробнее.
+  Список приложений с локальными WebP drawable-nodpi иконками RuStore;
+  поиск/bulk режим сохраняют прежнюю логику банковского согласия.
+- Первый run 40297514305 упал на unused strings и bitmap density lint;
+  исправлено удалением неиспользуемых строк и nodpi без suppression.
+- На телефоне layout/navigation/крупный шрифт/rotation не проверены, установки
+  не было. Проверить обновление поверх release, все вкладки, app icons,
+  bulk edit и входящую ссылку из другой вкладки. Источники в APP_ICONS.md.
+
 ## 0.4.3-friendly-setup — 2026-10-24
 
 - APK commit 691a696; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/40123215936 SUCCESS.
