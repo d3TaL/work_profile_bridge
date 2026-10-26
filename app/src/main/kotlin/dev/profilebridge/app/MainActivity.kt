@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import androidx.core.content.FileProvider
@@ -81,7 +82,7 @@ open class MainActivity : ComponentActivity() {
     private var transferApp by mutableStateOf<String?>(null)
     private var transferFailed by mutableStateOf(false)
     private var showApps by mutableStateOf(false)
-    private var homeTab by mutableStateOf(0)
+    private var homeTab by mutableIntStateOf(0)
     private var appModes by mutableStateOf<Map<String, AppMode>>(emptyMap())
     private var retryLink: SafeLink? = null
     private var retryDeadline = 0L
@@ -156,7 +157,7 @@ open class MainActivity : ComponentActivity() {
                 AppsScreen(appModes, apply = { packages, mode ->
                     AppRules.set(this, packages, mode)
                     appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
-                }, close = { showApps = false }, selectTab = { selectHomeTab(it) })
+                }, close = { selectHomeTab(0) }, selectTab = { selectHomeTab(it) })
             } else if (transfer != null) {
                 TransferScreen(transfer, transferFailed, expired = message == R.string.transfer_expired,
                     retryEnabled = retryLink != null, retry = {

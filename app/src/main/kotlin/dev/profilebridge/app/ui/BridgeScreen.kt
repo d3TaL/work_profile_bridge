@@ -124,22 +124,22 @@ fun BridgeScreen(
                 }
                 Text(stringResource(R.string.auto_forward))
                 Switch(checked = autoForward, onCheckedChange = setAutoForward)
-                Text(stringResource(R.string.auto_forward_note))
+                SettingHelp(R.string.auto_forward_note)
                 Text(stringResource(R.string.share_route))
                 Switch(checked = shareRoute, onCheckedChange = setShareRoute)
-                Text(stringResource(R.string.share_route_note))
+                SettingHelp(R.string.share_route_note)
                 Text(stringResource(R.string.compact_mode))
                 Switch(checked = compactMode, onCheckedChange = setCompactMode)
-                Text(stringResource(R.string.compact_note))
+                SettingHelp(R.string.compact_note)
                 OutlinedButton(onClick = shareLink, enabled = url.isNotBlank()) {
                     Text(stringResource(R.string.share_link_title))
                 }
                 Text(stringResource(R.string.auto_open_stores))
                 Switch(checked = autoOpenStores, onCheckedChange = setAutoOpenStores)
-                Text(stringResource(R.string.auto_open_stores_note))
+                SettingHelp(R.string.auto_open_stores_note)
                 Text(stringResource(R.string.auto_open_shares))
                 Switch(checked = autoOpenShares, onCheckedChange = setAutoOpenShares)
-                Text(stringResource(R.string.auto_open_shares_note))
+                SettingHelp(R.string.auto_open_shares_note)
                 }
                 OutlinedButton(onClick = { diagnostics = !diagnostics }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(if (diagnostics) R.string.home_hide_diagnostics else R.string.home_diagnostics))
@@ -158,4 +158,11 @@ fun BridgeScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SettingHelp(text: Int) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    TextButton(onClick = { expanded = !expanded }) { Text(stringResource(R.string.setup_more)) }
+    if (expanded) Text(stringResource(text))
 }

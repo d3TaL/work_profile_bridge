@@ -139,13 +139,11 @@
     <string name="title">Profile Bridge · Ссылки</string>
     <string name="debug_mode">Отладка передачи и открытия</string>
     <string name="debug_note">Журнал только в памяти, без URL и токенов. Выключение очищает журнал. Включите в обеих копиях до теста. MCP и удалённое управление пока не подключены.</string>
-    <string name="intro">Версия 0.3.0. Основная копия отправляет, рабочая открывает магазин. Начните с первоначальной настройки. Для Secure Folder доступны системное меню передачи и отдельное автооткрытие из «Поделиться».</string>
     <string name="report_title">Диагностический отчёт</string>
     <string name="share_report">Поделиться отчётом</string>
     <string name="close_report">Закрыть</string>
     <string name="device">Android %1$s · API %2$d · target %3$d</string>
     <string name="profiles">Копии через CrossProfileApps: %1$d</string>
-    <string name="profile_note">Secure Folder может не отображаться. «Открыть копию» переключает приложение без ссылки. Передача ссылки — отдельная кнопка ниже.</string>
     <string name="profile_access_granted">Android разрешает межпрофильное взаимодействие.</string>
     <string name="profile_access_requestable">Можно открыть настройки доступа. Выдача зависит от списка разрешённых приложений DPC/OEM.</string>
     <string name="profile_access_unknown">Состояние межпрофильного доступа не установлено.</string>
@@ -155,7 +153,6 @@
     <string name="profile_access_denied">Передача ссылки не разрешена. Запуск копии без ссылки не даёт права передачи. Нужны разрешение Android, allowlist администратора/OEM и согласие пользователя.</string>
     <string name="profile_target_unavailable">Выбранная копия сейчас недоступна через CrossProfileApps.</string>
     <string name="profile_send">Передать ссылку в копию %1$d</string>
-    <string name="profile_send_note">Выберите копию для передачи ссылки. Если в ней включено автооткрытие магазинов, поддерживаемая ссылка откроется в Ozon или Wildberries. Для остальных адресов нужен ручной выбор. Успех вызова Android не подтверждает получение; повторов нет.</string>
     <string name="profile_submitted">Запрос передан Android. Получение не подтверждено: проверьте поле ссылки в другой копии. Не повторяйте отправку автоматически.</string>
     <string name="profile_unknown_outcome">Результат передачи неизвестен. Проверьте другую копию перед ручным повтором.</string>
     <string name="link_received">Ссылка получена и проверена. Выберите копию для передачи или локальный обработчик. Для банка требуется ручное действие. Общедоступный вход не подтверждает отправителя или платёж.</string>
