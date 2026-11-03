@@ -22,7 +22,7 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
         with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - name: Set up Android SDK
         uses: android-actions/setup-android@9fc6c4e9069bf8d3d10b2204b1fb8f6ef7065407 # v3
         with:
@@ -78,7 +78,7 @@ jobs:
           name: profile-bridge-apks-${{ github.run_number }}
           path: ci-artifacts/
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 7
       - name: Remove private signing material
         if: always()
         shell: bash
@@ -93,4 +93,4 @@ jobs:
             core/build/test-results/test/
             app/build/reports/lint-results-*
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: 7
