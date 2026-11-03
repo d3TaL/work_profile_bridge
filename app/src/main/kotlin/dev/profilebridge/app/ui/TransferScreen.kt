@@ -38,27 +38,28 @@ fun TransferScreen(appName: String, failed: Boolean, expired: Boolean, retryEnab
         // Back behaves like the Close button: no retry, no new chooser.
         BackNavigation(onBack = close) {
             Scaffold { insets ->
-                Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
-                    MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface)))
-                    .padding(insets).verticalScroll(rememberScrollState()).padding(28.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Spacer(Modifier.height(32.dp))
-                    Icon(painterResource(R.drawable.ic_secure_folder), contentDescription = null,
-                        modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.primary)
-                    Text(appName, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.SemiBold)
+                ReachableColumn(Modifier.background(Brush.verticalGradient(listOf(
+                    MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface))).padding(insets),
+                    horizontalPadding = 28.dp,
+                    header = {
+                        Icon(painterResource(R.drawable.ic_secure_folder), contentDescription = null,
+                            modifier = Modifier.size(56.dp), tint = MaterialTheme.colorScheme.primary)
+                        Text(appName, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.SemiBold)
+                    },
+                    bottom = {
+                        AnimatedVisibility(retryEnabled) {
+                            OutlinedButton(onClick = retry, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                                Text(stringResource(R.string.transfer_retry))
+                            }
+                        }
+                        Button(onClick = close, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                            Text(stringResource(R.string.close))
+                        }
+                    }) {
                     Text(stringResource(if (failed) R.string.transfer_failed else R.string.transfer_choose),
                         style = MaterialTheme.typography.titleLarge)
                     Text(stringResource(if (expired) R.string.transfer_expired else R.string.transfer_unknown),
                         style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(24.dp))
-                    AnimatedVisibility(retryEnabled) {
-                        OutlinedButton(onClick = retry, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                            Text(stringResource(R.string.transfer_retry))
-                        }
-                    }
-                    Button(onClick = close, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                        Text(stringResource(R.string.close))
-                    }
                 }
             }
         }

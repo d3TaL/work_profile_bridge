@@ -59,6 +59,8 @@ interface BridgeActions {
     fun saveReport(report: String) {}
     fun shareReport(report: String) {}
     fun changeUrl(value: String) {}
+    /** Reads clipboard text only on this explicit tap. */
+    fun pasteLink() {}
     fun findHandlers() {}
     fun openHandler(handler: LocalHandler) {}
     fun sendToCopy(copy: UserHandle) {}

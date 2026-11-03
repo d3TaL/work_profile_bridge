@@ -58,6 +58,21 @@ class MainScreenTest {
     }
 
     @Test
+    fun homeSwitchChangesDestinationInOneTap() {
+        val actions = showStateful(0, readyState)
+        compose.onNodeWithText(text(R.string.dest_ask_short)).performScrollTo().performClick()
+        assertEquals(listOf("destination:${Destination.ASK}"), actions().calls)
+        compose.onNodeWithText(text(R.string.summary_ask)).assertExists()
+    }
+
+    @Test
+    fun pasteIsOfferedForAnEmptyField() {
+        val actions = show(0, readyState)
+        compose.onNodeWithText(text(R.string.paste)).performScrollTo().performClick()
+        assertEquals(listOf("paste"), actions.calls)
+    }
+
+    @Test
     fun workModeOffersOnlyTheWorkProfile() {
         val actions = show(0, readyState.copy(url = PUBLIC_LINK, linkApp = "Ozon"))
         compose.onNodeWithText(text(R.string.send_secure)).assertDoesNotExist()

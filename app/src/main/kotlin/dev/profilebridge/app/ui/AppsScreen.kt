@@ -74,23 +74,20 @@ fun AppsScreen(modes: Map<String, AppMode>, apply: (Set<String>, AppMode) -> Uni
                     BottomBar(1, selectTab)
                 }
             }) { insets ->
-                Column(Modifier.fillMaxSize().padding(insets).consumeWindowInsets(insets).imePadding()
-                    .verticalScroll(rememberScrollState()).padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.apps_title), style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.SemiBold)
-                            Text(stringResource(R.string.apps_subtitle), style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Large title on top; its actions sit on the line below, not in the top corner.
+                ReachableColumn(Modifier.padding(insets).consumeWindowInsets(insets).imePadding(),
+                    title = stringResource(R.string.apps_title), header = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.apps_subtitle), Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            IconButton(onClick = { details = !details }) {
+                                Icon(painterResource(R.drawable.ic_info), contentDescription = stringResource(R.string.setup_more))
+                            }
+                            if (!selecting) TextButton(onClick = { selecting = true; selected = emptySet() }) {
+                                Text(stringResource(R.string.apps_select))
+                            }
                         }
-                        IconButton(onClick = { details = !details }) {
-                            Icon(painterResource(R.drawable.ic_info), contentDescription = stringResource(R.string.setup_more))
-                        }
-                        if (!selecting) TextButton(onClick = { selecting = true; selected = emptySet() }) {
-                            Text(stringResource(R.string.apps_select))
-                        }
-                    }
+                    }) {
                     if (details) Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
                         Text(stringResource(R.string.apps_note), Modifier.padding(16.dp),

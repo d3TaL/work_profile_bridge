@@ -379,6 +379,7 @@ open class MainActivity : ComponentActivity() {
         }
         override fun shareReport(report: String) = this@MainActivity.shareReport(report)
         override fun changeUrl(value: String) = edit(value)
+        override fun pasteLink() = this@MainActivity.pasteLink()
         override fun findHandlers() = inspect()
         override fun openHandler(handler: LocalHandler) = this@MainActivity.openHandler(handler)
         override fun sendToCopy(copy: UserHandle) = this@MainActivity.sendToCopy(copy)
@@ -471,6 +472,13 @@ open class MainActivity : ComponentActivity() {
             putBoolean("android.content.extra.IS_SENSITIVE", true)
         }
         getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
+    }
+    private fun pasteLink() {
+        val clip = getSystemService(ClipboardManager::class.java).primaryClip
+        // Text only, on an explicit tap: clipboard URIs and Intents are never resolved.
+        val text = clip?.takeIf { it.itemCount == 1 }?.getItemAt(0)?.text?.toString()?.trim()
+        val value = text?.let { StoreLinks.fromShareText(it) }
+        if (value == null) linkError = R.string.paste_empty else edit(value)
     }
     private fun pasteCode() {
         val clip = getSystemService(ClipboardManager::class.java).primaryClip ?: return

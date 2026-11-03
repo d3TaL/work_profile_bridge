@@ -49,6 +49,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.profilebridge.app.R
@@ -64,23 +65,67 @@ fun MainScreen(tab: Int, state: BridgeState, actions: BridgeActions) {
             Scaffold(bottomBar = { BottomBar(tab, actions::selectTab) }) { insets ->
                 AnimatedContent(targetState = tab, label = "tab",
                     transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { current ->
-                    Column(Modifier.fillMaxSize().padding(insets).consumeWindowInsets(insets).imePadding()
-                        .verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        if (current == 2) SettingsContent(state, actions) else HomeContent(state, actions)
-                    }
+                    val area = Modifier.padding(insets).consumeWindowInsets(insets).imePadding()
+                    if (current == 2) SettingsContent(state, actions, area) else HomeContent(state, actions, area)
                 }
             }
         }
     }
 }
 
+/** The top shows the state; everything to tap is at the bottom, within thumb reach. */
 @Composable
-private fun HomeContent(state: BridgeState, actions: BridgeActions) {
-    ScreenTitle(stringResource(R.string.home_title))
-    Notice(state.message)
-    if (state.space == Space.MAIN) StatusCard(state, actions) else ReceiverCard(state, actions)
-    LinkCard(state, actions)
+private fun HomeContent(state: BridgeState, actions: BridgeActions, modifier: Modifier) {
+    val main = state.space == Space.MAIN
+    val remaining = state.checks().remaining
+    ReachableColumn(modifier, header = { if (main) HomeHero(state, remaining) else ReceiverHero(state) },
+        bottom = {
+            if (main) {
+                AnimatedVisibility(remaining > 0) {
+                    FilledTonalButton(onClick = { actions.selectTab(2) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                        Text(stringResource(R.string.status_finish))
+                    }
+                }
+                SectionLabel(R.string.dest_title)
+                DestinationSwitch(state.destination, state.samsung, actions::setDestination)
+            } else {
+                SettingsGroup {
+                    OpenImmediatelyConsent(state, actions) { request ->
+                        SwitchSetting(R.drawable.ic_bolt, R.string.open_now, null, state.openImmediately, request)
+                    }
+                }
+            }
+            LinkCard(state, actions)
+        }) {
+        Notice(state.message)
+    }
+}
+
+@Composable
+private fun HomeHero(state: BridgeState, remaining: Int) {
+    val ready = remaining == 0
+    val tint by animateColorAsState(if (ready) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+        label = "heroTint")
+    AnimatedContent(targetState = ready, label = "heroIcon") { isReady ->
+        Icon(painterResource(if (isReady) R.drawable.ic_check_circle else destinationIcon(state.destination)),
+            contentDescription = null, modifier = Modifier.size(48.dp), tint = tint)
+    }
+    Text(if (ready) stringResource(R.string.status_ready) else stringResource(R.string.status_left, remaining),
+        style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.SemiBold)
+    AnimatedContent(targetState = state.destination, label = "heroSummary") { destination ->
+        Text(stringResource(destinationSummary(destination)), style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun ReceiverHero(state: BridgeState) {
+    Icon(painterResource(if (state.space == Space.SECURE_FOLDER) R.drawable.ic_secure_folder else R.drawable.ic_work),
+        contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+    Text(stringResource(R.string.receiver_title), style = MaterialTheme.typography.displaySmall,
+        fontWeight = FontWeight.SemiBold)
+    Text(stringResource(if (state.openImmediately) R.string.open_now_on else R.string.open_now_off),
+        style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 fun destinationIcon(destination: Destination) = when (destination) {
@@ -93,58 +138,6 @@ fun destinationSummary(destination: Destination) = when (destination) {
     Destination.WORK_PROFILE -> R.string.summary_work
     Destination.SECURE_FOLDER -> R.string.summary_secure
     Destination.ASK -> R.string.summary_ask
-}
-
-@Composable
-private fun StatusCard(state: BridgeState, actions: BridgeActions) {
-    val remaining = state.checks().remaining
-    val ready = remaining == 0
-    val scheme = MaterialTheme.colorScheme
-    val container by animateColorAsState(if (ready) scheme.primaryContainer else scheme.tertiaryContainer,
-        label = "status")
-    val content by animateColorAsState(if (ready) scheme.onPrimaryContainer else scheme.onTertiaryContainer,
-        label = "statusText")
-    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp), color = container, contentColor = content) {
-        Column(Modifier.animateContentSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                AnimatedContent(targetState = ready, label = "statusIcon") { isReady ->
-                    Icon(painterResource(if (isReady) R.drawable.ic_check_circle else destinationIcon(state.destination)),
-                        contentDescription = null, modifier = Modifier.size(36.dp))
-                }
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(if (ready) stringResource(R.string.status_ready) else stringResource(R.string.status_left, remaining),
-                        style = MaterialTheme.typography.titleLarge)
-                    Text(stringResource(destinationSummary(state.destination)), style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-            if (!ready) FilledTonalButton(onClick = { actions.selectTab(2) }) {
-                Text(stringResource(R.string.status_finish))
-            }
-        }
-    }
-}
-
-@Composable
-private fun ReceiverCard(state: BridgeState, actions: BridgeActions) {
-    val scheme = MaterialTheme.colorScheme
-    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(28.dp), color = scheme.primaryContainer,
-        contentColor = scheme.onPrimaryContainer) {
-        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Icon(painterResource(if (state.space == Space.SECURE_FOLDER) R.drawable.ic_secure_folder else R.drawable.ic_work),
-                contentDescription = null, modifier = Modifier.size(36.dp))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(stringResource(R.string.receiver_title), style = MaterialTheme.typography.titleLarge)
-                Text(stringResource(if (state.openImmediately) R.string.open_now_on else R.string.open_now_off),
-                    style = MaterialTheme.typography.bodyMedium)
-            }
-            val label = stringResource(R.string.open_now)
-            OpenImmediatelyConsent(state, actions) { request ->
-                Switch(checked = state.openImmediately, onCheckedChange = request,
-                    modifier = Modifier.semantics { contentDescription = label })
-            }
-        }
-    }
 }
 
 /**
@@ -193,9 +186,18 @@ private fun LinkCard(state: BridgeState, actions: BridgeActions) {
                     }
                 }
             }
-            if (state.url.isBlank()) Text(stringResource(
-                if (state.space == Space.MAIN) R.string.link_hint else R.string.receiver_hint), style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            AnimatedVisibility(state.url.isBlank()) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(if (state.space == Space.MAIN) R.string.link_hint else R.string.receiver_hint),
+                        Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    FilledTonalButton(onClick = actions::pasteLink) {
+                        Icon(painterResource(R.drawable.ic_paste), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.size(8.dp))
+                        Text(stringResource(R.string.paste))
+                    }
+                }
+            }
         }
     }
 }
@@ -233,60 +235,61 @@ private fun SendButton(icon: Int, text: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SettingsContent(state: BridgeState, actions: BridgeActions) {
-    ScreenTitle(stringResource(R.string.nav_settings))
-    Notice(state.message)
-    if (state.space == Space.MAIN) {
-        SectionLabel(R.string.dest_title)
-        DestinationChoices(state.destination, state.samsung, actions::setDestination)
-        // Only what the chosen destination needs; switching modes animates the section.
-        AnimatedContent(targetState = state.destination, label = "destinationSettings",
-            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { destination ->
-            val shown = state.copy(destination = destination)
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionLabel(R.string.prepare_title)
-                ChecklistGroup(shown, actions)
-                if (destination != Destination.SECURE_FOLDER && state.copies.size > 1) {
-                    SectionLabel(R.string.copy_title)
-                    SettingsGroup {
-                        state.copies.forEachIndexed { index, copy ->
-                            if (index > 0) GroupDivider()
-                            SettingRow(R.drawable.ic_copy, R.string.copy_item,
-                                if (copy == state.target) stringResource(R.string.copy_selected, index + 1)
-                                else stringResource(R.string.copy_number, index + 1)) { actions.selectCopy(copy) }
+private fun SettingsContent(state: BridgeState, actions: BridgeActions, modifier: Modifier) {
+    ReachableColumn(modifier, title = stringResource(R.string.nav_settings)) {
+        Notice(state.message)
+        if (state.space == Space.MAIN) {
+            SectionLabel(R.string.dest_title)
+            DestinationChoices(state.destination, state.samsung, actions::setDestination)
+            // Only what the chosen destination needs; switching modes animates the section.
+            AnimatedContent(targetState = state.destination, label = "destinationSettings",
+                transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(120)) }) { destination ->
+                val shown = state.copy(destination = destination)
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SectionLabel(R.string.prepare_title)
+                    ChecklistGroup(shown, actions)
+                    if (destination != Destination.SECURE_FOLDER && state.copies.size > 1) {
+                        SectionLabel(R.string.copy_title)
+                        SettingsGroup {
+                            state.copies.forEachIndexed { index, copy ->
+                                if (index > 0) GroupDivider()
+                                SettingRow(R.drawable.ic_copy, R.string.copy_item,
+                                    if (copy == state.target) stringResource(R.string.copy_selected, index + 1)
+                                    else stringResource(R.string.copy_number, index + 1)) { actions.selectCopy(copy) }
+                            }
                         }
                     }
                 }
             }
+        } else {
+            SectionLabel(R.string.space_title)
+            SpaceChoices(state.space, actions::setSpace)
+            SectionLabel(R.string.received_title)
+            SettingsGroup {
+                OpenImmediatelyConsent(state, actions) { request ->
+                    SwitchSetting(R.drawable.ic_bolt, R.string.open_now, R.string.open_now_hint, state.openImmediately, request)
+                }
+            }
         }
-    } else {
-        SectionLabel(R.string.space_title)
-        SpaceChoices(state.space, actions::setSpace)
-        SectionLabel(R.string.received_title)
+        SectionLabel(R.string.more_title)
         SettingsGroup {
-            OpenImmediatelyConsent(state, actions) { request ->
-                SwitchSetting(R.drawable.ic_bolt, R.string.open_now, R.string.open_now_hint, state.openImmediately, request)
+            SwitchSetting(R.drawable.ic_window, R.string.compact_window, R.string.compact_window_hint,
+                state.compactWindow, actions::setCompactWindow)
+            GroupDivider()
+            SettingRow(R.drawable.ic_replay, R.string.setup_again, onClick = actions::openSetup)
+            GroupDivider()
+            SwitchSetting(R.drawable.ic_info, R.string.diagnostics, R.string.diagnostics_hint,
+                state.diagnostics, actions::setDiagnostics)
+            AnimatedVisibility(state.diagnostics) {
+                Column {
+                    GroupDivider()
+                    SettingRow(R.drawable.ic_open_in_new, R.string.report_title, onClick = actions::previewReport)
+                }
             }
         }
+        Text(stringResource(R.string.privacy, state.version), Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-    SectionLabel(R.string.more_title)
-    SettingsGroup {
-        SwitchSetting(R.drawable.ic_window, R.string.compact_window, R.string.compact_window_hint,
-            state.compactWindow, actions::setCompactWindow)
-        GroupDivider()
-        SettingRow(R.drawable.ic_replay, R.string.setup_again, onClick = actions::openSetup)
-        GroupDivider()
-        SwitchSetting(R.drawable.ic_info, R.string.diagnostics, R.string.diagnostics_hint,
-            state.diagnostics, actions::setDiagnostics)
-        AnimatedVisibility(state.diagnostics) {
-            Column {
-                GroupDivider()
-                SettingRow(R.drawable.ic_open_in_new, R.string.report_title, onClick = actions::previewReport)
-            }
-        }
-    }
-    Text(stringResource(R.string.privacy, state.version), Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
-        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable

@@ -52,6 +52,7 @@
     <string name="copy_selected">Копия %1$d · выбрана</string>
     <string name="copy_title">Копия в рабочем профиле</string>
     <string name="dest_ask">Спрашивать каждый раз</string>
+    <string name="dest_ask_short">Спрашивать</string>
     <string name="dest_ask_hint">Две кнопки при каждой ссылке</string>
     <string name="dest_ask_hint_single">Кнопка при каждой ссылке</string>
     <string name="dest_secure">Secure Folder</string>
@@ -64,7 +65,6 @@
     <string name="diagnostics_hint">Журнал без ссылок, только в памяти</string>
     <string name="enable">Включить</string>
     <string name="finish">Готово</string>
-    <string name="home_title">Bridge</string>
     <string name="how">Как?</string>
     <string name="how_access_island">Island → Settings → Manage cross-land privilege → Profile Bridge.</string>
     <string name="how_access_shelter">Shelter → рабочий профиль → Profile Bridge → «Разрешить работу между профилями».</string>
@@ -93,6 +93,8 @@
     <string name="open_ok">Запрос на открытие отправлен.</string>
     <string name="open_on_tap">По кнопке</string>
     <string name="open_on_tap_hint">Сначала покажу ссылку</string>
+    <string name="paste">Вставить</string>
+    <string name="paste_empty">В буфере нет ссылки</string>
     <string name="prepare_title">Подготовка</string>
     <string name="privacy">Ссылки не сохраняются и не пишутся в журналы, снимки экрана отключены. Версия %1$s.</string>
     <string name="profile_access_denied">Нет связи с рабочим профилем. Проверьте «Подготовку» в Настройках.</string>

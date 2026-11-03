@@ -53,16 +53,96 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.text.style.TextAlign
 import dev.profilebridge.app.R
 import dev.profilebridge.app.platform.ProfileAccess
 import dev.profilebridge.app.platform.ProfileManager
 
 private val CardShape = RoundedCornerShape(20.dp)
 
+/**
+ * One-handed layout (as in One UI): the top part of the screen is a large header that is only
+ * read, controls start below it, and short screens keep [bottom] next to the thumb. Once the large
+ * title scrolls away a small one fades in; it is drawn in a layer, so scrolling does not recompose.
+ */
 @Composable
-fun ScreenTitle(text: String) {
-    Text(text, Modifier.padding(top = 8.dp, bottom = 4.dp), style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.SemiBold)
+fun ReachableColumn(
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    header: @Composable ColumnScope.() -> Unit = {},
+    horizontalPadding: Dp = 16.dp,
+    bottom: @Composable ColumnScope.() -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val scroll = rememberScrollState()
+    BoxWithConstraints(modifier.fillMaxSize()) {
+        val headerHeight = (maxHeight * 0.28f).coerceAtLeast(96.dp)
+        Column(Modifier.fillMaxWidth().verticalScroll(scroll).heightIn(min = maxHeight)
+            .padding(horizontal = horizontalPadding), verticalArrangement = Arrangement.SpaceBetween) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.fillMaxWidth().heightIn(min = headerHeight).padding(bottom = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom)) {
+                    title?.let {
+                        Text(it, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.SemiBold)
+                    }
+                    header()
+                }
+                content()
+            }
+            Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                content = bottom)
+        }
+        if (title != null) {
+            val fadeStart = with(LocalDensity.current) { headerHeight.toPx() * 0.6f }
+            Box(Modifier.fillMaxWidth().clearAndSetSemantics {}.graphicsLayer {
+                alpha = ((scroll.value - fadeStart) / fadeStart.coerceAtLeast(1f) * 3f).coerceIn(0f, 1f)
+            }.background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = horizontalPadding, vertical = 14.dp)) {
+                Text(title, style = MaterialTheme.typography.titleLarge)
+            }
+        }
+    }
+}
+
+/** One-tap destination switch for Home: the same choice as in Settings, in thumb reach. */
+@Composable
+fun DestinationSwitch(selected: Destination, samsung: Boolean, choose: (Destination) -> Unit) {
+    val options = buildList {
+        add(Destination.WORK_PROFILE)
+        if (samsung || selected == Destination.SECURE_FOLDER) add(Destination.SECURE_FOLDER)
+        add(Destination.ASK)
+    }
+    val scheme = MaterialTheme.colorScheme
+    Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { option ->
+            val on = option == selected
+            val container by animateColorAsState(if (on) scheme.primaryContainer else scheme.surfaceContainerLow,
+                label = "switch")
+            val content by animateColorAsState(if (on) scheme.onPrimaryContainer else scheme.onSurfaceVariant,
+                label = "switchText")
+            Column(Modifier.weight(1f).heightIn(min = 88.dp).clip(CardShape).background(container)
+                .selectable(selected = on, role = Role.RadioButton) { choose(option) }
+                .padding(horizontal = 6.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) {
+                Icon(painterResource(destinationIcon(option)), contentDescription = null,
+                    modifier = Modifier.size(24.dp), tint = content)
+                Text(stringResource(when (option) {
+                    Destination.WORK_PROFILE -> R.string.dest_work
+                    Destination.SECURE_FOLDER -> R.string.dest_secure
+                    Destination.ASK -> R.string.dest_ask_short
+                }), color = content, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center)
+            }
+        }
+    }
 }
 
 @Composable

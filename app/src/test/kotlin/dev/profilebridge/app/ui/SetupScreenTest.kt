@@ -92,7 +92,7 @@ class SetupScreenTest {
     @Test
     fun skipFinishesSetup() {
         val (calls, _) = show(freshState)
-        compose.onNodeWithText(text(R.string.skip)).performClick()
+        compose.onNodeWithText(text(R.string.skip)).performScrollTo().performClick()
         assertEquals(1, calls.done)
     }
 

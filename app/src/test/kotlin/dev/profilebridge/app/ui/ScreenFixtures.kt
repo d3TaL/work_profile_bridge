@@ -73,6 +73,7 @@ class RecordingActions(private val update: ((BridgeState) -> BridgeState) -> Uni
     override fun sendToCopy(copy: UserHandle) { sentTo += copy }
     override fun sendToSecureFolder() { calls += "secure" }
     override fun closeQuickSend() { calls += "close" }
+    override fun pasteLink() { calls += "paste" }
 }
 
 /** Holds the state in Compose so a tapped option changes what the screen shows. */
