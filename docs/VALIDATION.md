@@ -1,5 +1,30 @@
 # Проверки восстановленной версии
 
+## 0.6.0-simple-ux — 2026-11-03
+
+- Интерфейс перекроен по решению владельца: выбор «Куда» (рабочий профиль /
+  Secure Folder / спрашивать), чек-лист выбранного режима, мастер 3 шага
+  (получатели — 2), раскладка в стиле One UI (заголовок сверху, управление
+  внизу), на главной плитки «Куда» и «Вставить». «Назад» через NavigationEvent,
+  поля над клавиатурой. Маршрутизация, проверки ссылок и согласия не менялись.
+- Android skills github.com/android/skills 6daa53e: testing-setup, edge-to-edge,
+  navigation-event — SKILL.md прочитаны, отступления в docs/TESTING.md.
+- APK commit `400dcd2`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/41647225885
+  SUCCESS (запуск удалится очисткой Actions после следующей сборки master;
+  доказательством остаются commit и SHA-256 ниже).
+- JUnit XML: 84 теста, 0 failures/errors (core + app на Robolectric 4.17, SDK 37).
+  Roborazzi verify: 35 из 35 скриншотов без изменений. Lint Debug/Release 0 issues.
+  Assemble Debug/Release PASS, strict dependency verification, Release R8.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.6.0-simple-ux-400dcd2-release.apk`.
+- SHA-256 `f75c530898f738dde1a21d10dadb44add2f8a3ad27a4644796b57c198c02a7b6`,
+  SHA256SUMS OK. CI apksigner: Verifies, v2; signer
+  `11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7` (постоянный).
+- VersionCode 32 > 31: обновление поверх 0.5.2. Установку агент не выполнял.
+- Не проверено на устройстве: системные панели, клавиатура и предиктивный жест
+  на One UI; статус доменов «Открывать по умолчанию»; вставка из буфера;
+  перенос старых настроек (ручной режим → «Спрашивать»); маршрут Secure Folder;
+  роли копий-получателей. Скриншоты JVM не заменяют проверку на телефоне.
+
 ## 0.5.2 — импорт архива владельца, 2026-10-26
 
 - Источник `/storage/emulated/0/Download/work_profile_bridge.zip`.
