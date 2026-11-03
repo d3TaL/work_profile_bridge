@@ -15,6 +15,10 @@ fun AppIcon(pkg: String) {
     val icon = when (pkg) {
         "ru.ozon.app.android" -> R.drawable.app_ru_ozon_app_android
         "com.wildberries.ru" -> R.drawable.app_com_wildberries_ru
+        "ru.aliexpress.buyer" -> R.drawable.app_ru_aliexpress_buyer
+        "com.avito.android" -> R.drawable.app_com_avito_android
+        "ru.yandex.yandexmaps" -> R.drawable.app_ru_yandex_yandexmaps
+        "ru.yandex.disk" -> R.drawable.app_ru_yandex_disk
         "com.idamob.tinkoff.android" -> R.drawable.app_com_idamob_tinkoff_android
         "ru.sberbankmobile" -> R.drawable.app_ru_sberbankmobile
         "ru.vtb24.mobilebanking.android" -> R.drawable.app_ru_vtb24_mobilebanking_android

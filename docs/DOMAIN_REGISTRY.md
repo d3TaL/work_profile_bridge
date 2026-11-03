@@ -146,5 +146,4 @@ auto-open для него отключён.
 infra/staging хосты AliExpress (mixer, wapi, login, trade, feedback, star,
 promotion) и Яндекса (passport.*, pay applink с хэшами, oauth.yandex.ru); общие
 порталы yandex.ru/.com/.by/.az (не только Карты); у Альфы — `sberbank.ru`
-(домен Сбера) и `platiqr.ru` (QR-агрегатор). Иконки RuStore для новых приложений
-пока не добавлены — в списке они показываются значком моста.
+(домен Сбера) и `platiqr.ru` (QR-агрегатор). Иконки RuStore добавлены в 0.6.2.

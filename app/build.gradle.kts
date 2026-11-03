@@ -10,8 +10,8 @@ android {
         applicationId = "dev.profilebridge.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 33
-        versionName = "0.6.1-more-apps"
+        versionCode = 34
+        versionName = "0.6.2-app-icons"
     }
     buildFeatures { compose = true; buildConfig = true }
     val releaseStore = providers.environmentVariable("PLB_RELEASE_KEYSTORE_PATH").orNull
