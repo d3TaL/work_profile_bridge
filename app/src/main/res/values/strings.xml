@@ -102,6 +102,7 @@
     <string name="profile_target_unavailable">Рабочий профиль недоступен: он на паузе или Bridge там нет.</string>
     <string name="profile_unknown_outcome">Неизвестно, дошла ли ссылка. Проверьте рабочий профиль, прежде чем повторять.</string>
     <string name="quick_title">Куда отправить?</string>
+    <string name="receiver_hint">Ссылки из основной копии появятся здесь.</string>
     <string name="received_title">Полученные ссылки</string>
     <string name="receiver_title">Принимает ссылки</string>
     <string name="report_saved">Отчёт сохранён</string>

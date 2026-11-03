@@ -16,7 +16,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -246,8 +244,10 @@ fun CheckRow(check: Check, status: CheckStatus, state: BridgeState, actions: Bri
 @Composable
 private fun HowTo(check: Check, text: Int) {
     var open by rememberSaveable(check) { mutableStateOf(false) }
-    TextButton(onClick = { open = !open }, contentPadding = PaddingValues(0.dp)) {
-        Text(stringResource(R.string.how))
+    Box(Modifier.heightIn(min = 48.dp).clickable(role = Role.Button) { open = !open },
+        contentAlignment = Alignment.CenterStart) {
+        Text(stringResource(R.string.how), style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary)
     }
     AnimatedVisibility(open, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
         Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)

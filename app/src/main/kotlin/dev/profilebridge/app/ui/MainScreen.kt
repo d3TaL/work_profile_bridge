@@ -47,6 +47,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.profilebridge.app.R
@@ -136,7 +138,11 @@ private fun ReceiverCard(state: BridgeState, actions: BridgeActions) {
                 Text(stringResource(if (state.openImmediately) R.string.open_now_on else R.string.open_now_off),
                     style = MaterialTheme.typography.bodyMedium)
             }
-            OpenImmediatelyConsent(state, actions) { request -> Switch(checked = state.openImmediately, onCheckedChange = request) }
+            val label = stringResource(R.string.open_now)
+            OpenImmediatelyConsent(state, actions) { request ->
+                Switch(checked = state.openImmediately, onCheckedChange = request,
+                    modifier = Modifier.semantics { contentDescription = label })
+            }
         }
     }
 }
@@ -187,7 +193,8 @@ private fun LinkCard(state: BridgeState, actions: BridgeActions) {
                     }
                 }
             }
-            if (state.url.isBlank()) Text(stringResource(R.string.link_hint), style = MaterialTheme.typography.bodyMedium,
+            if (state.url.isBlank()) Text(stringResource(
+                if (state.space == Space.MAIN) R.string.link_hint else R.string.receiver_hint), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

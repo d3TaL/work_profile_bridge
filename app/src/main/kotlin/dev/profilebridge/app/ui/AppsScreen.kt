@@ -34,7 +34,8 @@ fun AppsScreen(modes: Map<String, AppMode>, apply: (Set<String>, AppMode) -> Uni
     // Packages whose mode dialog is open, and packages awaiting the bank consent dialog.
     var editing by remember { mutableStateOf<Set<String>?>(null) }
     var bankConsent by remember { mutableStateOf<Set<String>?>(null) }
-    fun mode(pkg: String) = modes[pkg] ?: AppMode.AUTOMATIC
+    // Same defaults as AppRules: banks wait for a tap unless the owner chose otherwise.
+    fun mode(pkg: String) = modes[pkg] ?: if (BankLinks.isPackage(pkg)) AppMode.CONFIRM else AppMode.AUTOMATIC
     fun finish() { selected = emptySet(); selecting = false }
 
     BridgeTheme {
