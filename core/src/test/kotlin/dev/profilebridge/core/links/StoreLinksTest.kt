@@ -51,7 +51,7 @@ class StoreLinksTest {
     }
     @Test fun `added apps do not auto open sensitive paths, lookalikes or every registered host`() {
         listOf("https://www.aliexpress.ru/account", "https://aliexpress.ru/login/step",
-            "https://www.avito.ru/profile/payment", "https://disk.yandex.ru/%2Fx",
+            "https://www.avito.ru/payment", "https://disk.yandex.ru/%2Fx",
             "https://www.aliexpress.ru.evil.org/item/1", "https://maps.yandex.ru.evil.org/x").forEach {
             assertNull(target(it))
         }
