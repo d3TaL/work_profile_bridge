@@ -122,3 +122,29 @@ SUBMITTED_UNKNOWN_OUTCOME или успешного startActivity, что не �
 и отображение Ozon. При отказе или ручном режиме остаётся UI с ручными действиями.
 Это обычная видимая Activity, не невидимый background service/FGS. Балансировка
 окон, анимация и разрешение запуска на Samsung требуют испытания на устройстве.
+
+## Добавленные приложения — 0.6.1
+
+По скриншотам «Поддерживаемые веб-адреса», предоставленным владельцем. Пакеты
+сверены с RuStore/Google Play. Только точные хосты, без wildcard и infra/staging.
+
+| Приложение | Пакет | Хосты |
+| --- | --- | --- |
+| AliExpress | ru.aliexpress.buyer | aliexpress.ru, www/m.aliexpress.ru, sl.aliexpress.ru, aliexpress.com, www/m.aliexpress.com, ali.click, aliclick.shop, aliexprus.ru |
+| Avito | com.avito.android | m.avito.ru, www.avito.ru |
+| Яндекс Карты | ru.yandex.yandexmaps | maps.yandex.ru/by/kz, maps.ya.ru |
+| Яндекс Диск | ru.yandex.disk | disk.yandex.ru/com/com.tr, disk.360.yandex.ru, yadi.sk |
+| Альфа-Банк (HTTPS) | ru.alfabank.mobile.android | alfabank.ru, online.alfabank.ru, alfa-mobile.alfabank.ru |
+
+Автооткрытие не-банков: любой путь, кроме сегментов pay/payment/checkout/bank/
+account/login/signin/oauth/passport и ссылок с percent-encoding. Query/fragment
+не переписываются. Альфа — банк: маршрут с банковской политикой (по умолчанию
+с подтверждением; автоматический режим требует отдельного согласия), shop
+auto-open для него отключён.
+
+Намеренно НЕ добавлено (неоднозначное или чужое): wildcard `*.aliexpress.*`;
+infra/staging хосты AliExpress (mixer, wapi, login, trade, feedback, star,
+promotion) и Яндекса (passport.*, pay applink с хэшами, oauth.yandex.ru); общие
+порталы yandex.ru/.com/.by/.az (не только Карты); у Альфы — `sberbank.ru`
+(домен Сбера) и `platiqr.ru` (QR-агрегатор). Иконки RuStore для новых приложений
+пока не добавлены — в списке они показываются значком моста.

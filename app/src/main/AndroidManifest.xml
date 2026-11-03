@@ -26,6 +26,10 @@
         <package android:name="ru.yoo.money" />
         <package android:name="ru.otpbank.mobile" />
         <package android:name="ru.ozon.fintech.finance" />
+        <package android:name="ru.aliexpress.buyer" />
+        <package android:name="com.avito.android" />
+        <package android:name="ru.yandex.yandexmaps" />
+        <package android:name="ru.yandex.disk" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.BROWSABLE" />
@@ -89,6 +93,30 @@
                 <data android:host="www.tbank.ru" />
                 <data android:host="tbank.ru" />
                 <data android:host="tt.ru" />
+                <data android:host="alfabank.ru" />
+                <data android:host="online.alfabank.ru" />
+                <data android:host="alfa-mobile.alfabank.ru" />
+                <data android:host="aliexpress.ru" />
+                <data android:host="www.aliexpress.ru" />
+                <data android:host="m.aliexpress.ru" />
+                <data android:host="sl.aliexpress.ru" />
+                <data android:host="aliexpress.com" />
+                <data android:host="www.aliexpress.com" />
+                <data android:host="m.aliexpress.com" />
+                <data android:host="ali.click" />
+                <data android:host="aliclick.shop" />
+                <data android:host="aliexprus.ru" />
+                <data android:host="m.avito.ru" />
+                <data android:host="www.avito.ru" />
+                <data android:host="maps.yandex.ru" />
+                <data android:host="maps.yandex.by" />
+                <data android:host="maps.yandex.kz" />
+                <data android:host="maps.ya.ru" />
+                <data android:host="disk.yandex.ru" />
+                <data android:host="disk.yandex.com" />
+                <data android:host="disk.yandex.com.tr" />
+                <data android:host="disk.360.yandex.ru" />
+                <data android:host="yadi.sk" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

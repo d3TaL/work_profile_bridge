@@ -40,13 +40,26 @@ class BankLinksTest {
         }
     }
     @Test fun `bank domains recognized but never shop auto opened`() {
-        BankLinks.hosts.forEach {
-            val link = (SafeLink.parse("https://$it/example?x=%2F#part") as LinkParseResult.Accepted).link
-            assertEquals(BankLinks.T_BANK, StoreLinks.packageFor(link))
+        BankLinks.hosts.forEach { host ->
+            val link = (SafeLink.parse("https://$host/example?x=%2F#part") as LinkParseResult.Accepted).link
+            assertEquals(BankLinks.hostTarget(host), StoreLinks.packageFor(link))
             assertNull(StoreLinks.target(link))
         }
         val fake = (SafeLink.parse("https://tbank.ru.evil.org/") as LinkParseResult.Accepted).link
         assertNull(BankLinks.target(fake))
         assertEquals("https://tbank.ru/example", StoreLinks.fromShareText("Банк https://tbank.ru/example"))
+    }
+    @Test fun `alfa https hosts route to the bank app, cross-brand hosts do not`() {
+        listOf("alfabank.ru", "online.alfabank.ru", "alfa-mobile.alfabank.ru").forEach { host ->
+            val link = (SafeLink.parse("https://$host/account") as LinkParseResult.Accepted).link
+            assertEquals("ru.alfabank.mobile.android", BankLinks.target(link))
+            assertTrue(BankLinks.isPackage("ru.alfabank.mobile.android"))
+            assertNull("A bank link never shop auto-opens", StoreLinks.target(link))
+        }
+        // Declared by the Alfa app but deliberately not routed to it: Sber's domain and a QR aggregator.
+        listOf("sberbank.ru", "platiqr.ru").forEach {
+            val link = (SafeLink.parse("https://$it/x") as LinkParseResult.Accepted).link
+            assertNull(StoreLinks.packageFor(link))
+        }
     }
 }

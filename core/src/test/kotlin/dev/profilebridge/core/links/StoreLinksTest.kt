@@ -35,6 +35,34 @@ class StoreLinksTest {
         listOf("https://evil.ozon.ru/example", "https://ozon.app.link.evil.org/example",
             "https://not-ozon.app.link/example").forEach { assertNull(target(it)) }
     }
+    @Test fun `added apps route on exact hosts with a general path rule`() {
+        mapOf(
+            "https://www.aliexpress.ru/item/100500.html?sku=1" to "ru.aliexpress.buyer",
+            "https://sl.aliexpress.ru/p/AbC" to "ru.aliexpress.buyer",
+            "https://m.avito.ru/moskva/telefony/iphone_123" to "com.avito.android",
+            "https://maps.yandex.ru/-/abc" to "ru.yandex.yandexmaps",
+            "https://maps.ya.ru/xyz" to "ru.yandex.yandexmaps",
+            "https://disk.yandex.ru/i/abc123" to "ru.yandex.disk",
+            "https://yadi.sk/d/abc" to "ru.yandex.disk",
+        ).forEach { (url, pkg) ->
+            assertEquals(pkg, target(url))
+            assertEquals(pkg, StoreLinks.packageFor((SafeLink.parse(url) as LinkParseResult.Accepted).link))
+        }
+    }
+    @Test fun `added apps do not auto open sensitive paths, lookalikes or every registered host`() {
+        listOf("https://www.aliexpress.ru/account", "https://aliexpress.ru/login/step",
+            "https://www.avito.ru/profile/payment", "https://disk.yandex.ru/%2Fx",
+            "https://www.aliexpress.ru.evil.org/item/1", "https://maps.yandex.ru.evil.org/x").forEach {
+            assertNull(target(it))
+        }
+        // Every declared host at least recognizes (packageFor), even when a path blocks auto-open.
+        StoreLinks.extraShops.forEach { shop ->
+            shop.hosts.forEach { host ->
+                val link = (SafeLink.parse("https://$host/x") as LinkParseResult.Accepted).link
+                assertEquals(shop.packageName, StoreLinks.packageFor(link))
+            }
+        }
+    }
     @Test fun `share title preserves original url and rejects ambiguity`() {
         val raw = "https://ozon.ru/product/test-123/?a=%2F&b=2#f"
         assertEquals(raw, StoreLinks.fromShareText("Название товара\n$raw"))

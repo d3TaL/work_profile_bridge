@@ -29,8 +29,18 @@ object BankLinks {
         return if (link.scheme == "bank100000000273") listOf("ru.ozon.app.android", primary)
             else listOf(primary)
     }
-    val hosts = setOf("www.ob-tb.ru", "t-calls.ru", "id.srv-hub.org", "ipa.srv-hub.org",
-        "b.tbao.su", "www.tbank.ru", "tbank.ru", "tt.ru")
+    // HTTPS hosts a bank app itself declares. Only unambiguous own-brand hosts; cross-brand or
+    // payment-aggregator domains a bank also lists (e.g. sberbank.ru, platiqr.ru under Alfa) are left out.
+    private val hostBanks: Map<String, String> = mapOf(
+        "www.ob-tb.ru" to T_BANK, "t-calls.ru" to T_BANK, "id.srv-hub.org" to T_BANK,
+        "ipa.srv-hub.org" to T_BANK, "b.tbao.su" to T_BANK, "www.tbank.ru" to T_BANK,
+        "tbank.ru" to T_BANK, "tt.ru" to T_BANK,
+        "alfabank.ru" to "ru.alfabank.mobile.android",
+        "online.alfabank.ru" to "ru.alfabank.mobile.android",
+        "alfa-mobile.alfabank.ru" to "ru.alfabank.mobile.android",
+    )
+    val hosts: Set<String> = hostBanks.keys
+    fun hostTarget(host: String): String? = hostBanks[host]
     fun target(link: SafeLink): String? = banks.firstOrNull { it.scheme == link.scheme }?.packageName
-        ?: T_BANK.takeIf { link.scheme == "https" && link.host in hosts }
+        ?: hostBanks[link.host]?.takeIf { link.scheme == "https" }
 }

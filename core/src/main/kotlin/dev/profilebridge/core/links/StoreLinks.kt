@@ -17,8 +17,31 @@ object StoreLinks {
         "www.wildberries.ru" to "com.wildberries.ru",
     )
 
+    /** A supported app with exact hosts it handles. Wildcards and infra/staging hosts are excluded. */
+    data class Shop(val label: String, val packageName: String, val hosts: Set<String>)
+
+    /** Non-bank apps added from owner screenshots. General path rule, not Ozon/WB specific. */
+    val extraShops: List<Shop> = listOf(
+        Shop("AliExpress", "ru.aliexpress.buyer", setOf(
+            "aliexpress.ru", "www.aliexpress.ru", "m.aliexpress.ru", "sl.aliexpress.ru",
+            "aliexpress.com", "www.aliexpress.com", "m.aliexpress.com",
+            "ali.click", "aliclick.shop", "aliexprus.ru")),
+        Shop("Avito", "com.avito.android", setOf("m.avito.ru", "www.avito.ru")),
+        Shop("Яндекс Карты", "ru.yandex.yandexmaps", setOf(
+            "maps.yandex.ru", "maps.yandex.by", "maps.yandex.kz", "maps.ya.ru")),
+        Shop("Яндекс Диск", "ru.yandex.disk", setOf(
+            "disk.yandex.ru", "disk.yandex.com", "disk.yandex.com.tr", "disk.360.yandex.ru", "yadi.sk")),
+    )
+    private val extraHosts: Map<String, String> =
+        extraShops.flatMap { shop -> shop.hosts.map { it to shop.packageName } }.toMap()
+
+    /** First path segment that marks a sensitive flow; such links need a manual tap, not auto-open. */
+    private val sensitiveSegments = setOf(
+        "pay", "payment", "payments", "checkout", "bank", "account", "login", "signin", "oauth", "passport")
+
     /** Recognition is independent of permission to launch automatically. */
-    fun packageFor(link: SafeLink): String? = packages[link.host] ?: BankLinks.target(link)
+    fun packageFor(link: SafeLink): String? =
+        packages[link.host] ?: extraHosts[link.host] ?: BankLinks.target(link)
 
     fun target(link: SafeLink): String? {
         if (BankLinks.target(link) != null) return null // Never shop auto-open for banks.
@@ -30,6 +53,11 @@ object StoreLinks {
             if (link.host in manualOzonHosts || '%' in link.rawPath ||
                 segment in setOf("pay", "payment", "payments", "checkout", "bank", "account")) return null
             return pkg
+        }
+        if (link.host in extraHosts) {
+            // Best-effort exclusion of sensitive flows; query/fragment preserved, never rewritten.
+            val segment = link.rawPath.trimStart('/').substringBefore('/').lowercase()
+            return pkg.takeIf { '%' !in link.rawPath && segment !in sensitiveSegments }
         }
         return pkg.takeIf {
             (link.rawPath.isEmpty() || link.rawPath == "/") &&
