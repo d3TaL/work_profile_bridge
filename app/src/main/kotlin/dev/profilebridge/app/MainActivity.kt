@@ -138,7 +138,12 @@ open class MainActivity : ComponentActivity() {
         setTheme(if (compactEntry) R.style.Theme_ProfileBridge_Transit else R.style.Theme_ProfileBridge)
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-        if (!compactEntry) enableEdgeToEdge()
+        // The compact entry is a floating dialog window; floating windows are not edge-to-edge.
+        if (!compactEntry) {
+            enableEdgeToEdge()
+            // Bottom bars draw their own background down to the screen edge.
+            window.isNavigationBarContrastEnforced = false
+        }
         autoOpenStores = storeAutoOpenEnabled()
         autoOpenShares = prefs.getBoolean("auto-open-share", false)
         autoForward = prefs.getBoolean("auto-forward", false)
@@ -188,6 +193,7 @@ open class MainActivity : ComponentActivity() {
                     refresh = ::refresh, requestAccess = ::requestAccess,
                     openLinkSettings = ::openLinkSettings, message = message,
                     prepareTest = { showSetup = false; edit("https://www.ozon.ru/"); message = R.string.wizard_test_ready },
+                    close = { showSetup = false },
                     done = {
                         prefs.edit().putBoolean("setup-intro-done", true).apply()
                         showSetup = false

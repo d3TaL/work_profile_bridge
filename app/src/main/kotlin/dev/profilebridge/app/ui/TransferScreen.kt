@@ -30,30 +30,33 @@ import dev.profilebridge.app.R
 fun TransferScreen(appName: String, failed: Boolean, expired: Boolean, retryEnabled: Boolean,
                    retry: () -> Unit, close: () -> Unit) {
     BridgeTheme {
-        Scaffold { insets ->
-            Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
-                MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface)))
-                .padding(insets).verticalScroll(rememberScrollState()).padding(28.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                Text(stringResource(R.string.transfer_title), style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.height(32.dp))
-                Text(appName, style = MaterialTheme.typography.displayMedium)
-                Surface(color = MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.large) {
-                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Icon(painterResource(R.drawable.ic_secure_folder), contentDescription = null)
-                        Text(stringResource(R.string.transfer_destination), style = MaterialTheme.typography.headlineMedium)
+        // Back behaves like the Close button: no retry, no new chooser.
+        BackNavigation(onBack = close) {
+            Scaffold { insets ->
+                Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+                    MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface)))
+                    .padding(insets).verticalScroll(rememberScrollState()).padding(28.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Text(stringResource(R.string.transfer_title), style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(32.dp))
+                    Text(appName, style = MaterialTheme.typography.displayMedium)
+                    Surface(color = MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.large) {
+                        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Icon(painterResource(R.drawable.ic_secure_folder), contentDescription = null)
+                            Text(stringResource(R.string.transfer_destination), style = MaterialTheme.typography.headlineMedium)
+                        }
                     }
-                }
-                Text(stringResource(if (failed) R.string.transfer_failed else R.string.transfer_choose),
-                    style = MaterialTheme.typography.titleLarge)
-                Text(stringResource(R.string.transfer_unknown))
-                if (expired) Text(stringResource(R.string.transfer_expired))
-                Spacer(Modifier.height(32.dp))
-                OutlinedButton(onClick = retry, enabled = retryEnabled, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.transfer_retry))
-                }
-                Button(onClick = close, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.close_report))
+                    Text(stringResource(if (failed) R.string.transfer_failed else R.string.transfer_choose),
+                        style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.transfer_unknown))
+                    if (expired) Text(stringResource(R.string.transfer_expired))
+                    Spacer(Modifier.height(32.dp))
+                    OutlinedButton(onClick = retry, enabled = retryEnabled, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.transfer_retry))
+                    }
+                    Button(onClick = close, modifier = Modifier.fillMaxWidth()) {
+                        Text(stringResource(R.string.close_report))
+                    }
                 }
             }
         }

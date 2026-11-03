@@ -1,6 +1,5 @@
 package dev.profilebridge.app.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -38,9 +37,6 @@ fun AppsScreen(modes: Map<String, AppMode>, apply: (Set<String>, AppMode) -> Uni
     fun mode(pkg: String) = modes[pkg] ?: AppMode.AUTOMATIC
     fun finish() { selected = emptySet(); selecting = false }
 
-    BackHandler(onBack = close)
-    BackHandler(enabled = selecting) { finish() }
-
     BridgeTheme {
         editing?.let { packages ->
             val single = packages.singleOrNull()
@@ -66,72 +62,76 @@ fun AppsScreen(modes: Map<String, AppMode>, apply: (Set<String>, AppMode) -> Uni
                 }) { Text(stringResource(R.string.bank_auto_accept)) } },
                 dismissButton = { TextButton(onClick = { bankConsent = null }) { Text(stringResource(R.string.cancel)) } })
         }
-        Scaffold(bottomBar = {
-            Column {
-                if (selecting) SelectionBar(count = selected.size,
-                    selectAll = { selected = AppRules.apps.filter { it.label.contains(query, true) }
-                        .map { it.packageName }.toSet() },
-                    edit = { editing = selected }, cancel = { finish() })
-                BottomBar(1, selectTab)
-            }
-        }) { insets ->
-            Column(Modifier.fillMaxSize().padding(insets).verticalScroll(rememberScrollState()).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.apps_title), style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.SemiBold)
-                        Text(stringResource(R.string.apps_subtitle), style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    IconButton(onClick = { details = !details }) {
-                        Icon(painterResource(R.drawable.ic_info), contentDescription = stringResource(R.string.setup_more))
-                    }
-                    if (!selecting) TextButton(onClick = { selecting = true; selected = emptySet() }) {
-                        Text(stringResource(R.string.apps_select))
-                    }
+        // One handler: back first leaves selection mode, then returns to Home.
+        BackNavigation(onBack = { if (selecting) finish() else close() }, animate = !selecting) {
+            Scaffold(bottomBar = {
+                Column {
+                    if (selecting) SelectionBar(count = selected.size,
+                        selectAll = { selected = AppRules.apps.filter { it.label.contains(query, true) }
+                            .map { it.packageName }.toSet() },
+                        edit = { editing = selected }, cancel = { finish() })
+                    BottomBar(1, selectTab)
                 }
-                if (details) Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                    Text(stringResource(R.string.apps_note), Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer)
-                }
-                OutlinedTextField(query, { query = it.take(80) }, Modifier.fillMaxWidth(), singleLine = true,
-                    shape = RoundedCornerShape(28.dp),
-                    placeholder = { Text(stringResource(R.string.apps_search)) },
-                    leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
-                    trailingIcon = if (query.isEmpty()) null else { {
-                        IconButton(onClick = { query = "" }) {
-                            Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.clear))
+            }) { insets ->
+                Column(Modifier.fillMaxSize().padding(insets).consumeWindowInsets(insets).imePadding()
+                    .verticalScroll(rememberScrollState()).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.apps_title), style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.SemiBold)
+                            Text(stringResource(R.string.apps_subtitle), style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                    } })
-                val visible = AppRules.apps.filter { it.label.contains(query, true) }
-                val (banks, shops) = visible.partition { BankLinks.isPackage(it.packageName) }
-                if (visible.isEmpty()) Text(stringResource(R.string.apps_empty),
-                    Modifier.fillMaxWidth().padding(vertical = 32.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                listOf(Triple(R.string.apps_shops, null, shops), Triple(R.string.apps_banks, R.string.apps_banks_note, banks))
-                    .forEach { (title, note, apps) ->
-                        if (apps.isNotEmpty()) {
-                            Column(Modifier.padding(start = 4.dp, top = 4.dp)) {
-                                Text(stringResource(title), style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                                note?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                        IconButton(onClick = { details = !details }) {
+                            Icon(painterResource(R.drawable.ic_info), contentDescription = stringResource(R.string.setup_more))
+                        }
+                        if (!selecting) TextButton(onClick = { selecting = true; selected = emptySet() }) {
+                            Text(stringResource(R.string.apps_select))
+                        }
+                    }
+                    if (details) Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                        Text(stringResource(R.string.apps_note), Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer)
+                    }
+                    OutlinedTextField(query, { query = it.take(80) }, Modifier.fillMaxWidth(), singleLine = true,
+                        shape = RoundedCornerShape(28.dp),
+                        placeholder = { Text(stringResource(R.string.apps_search)) },
+                        leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
+                        trailingIcon = if (query.isEmpty()) null else { {
+                            IconButton(onClick = { query = "" }) {
+                                Icon(painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.clear))
                             }
-                            Card(Modifier.fillMaxWidth()) {
-                                apps.forEachIndexed { index, app ->
-                                    if (index > 0) HorizontalDivider(Modifier.padding(start = 80.dp))
-                                    AppRow(app, mode(app.packageName), selecting, app.packageName in selected) {
-                                        if (selecting) {
-                                            selected = if (app.packageName in selected)
-                                                selected - app.packageName else selected + app.packageName
-                                        } else { editing = setOf(app.packageName) }
+                        } })
+                    val visible = AppRules.apps.filter { it.label.contains(query, true) }
+                    val (banks, shops) = visible.partition { BankLinks.isPackage(it.packageName) }
+                    if (visible.isEmpty()) Text(stringResource(R.string.apps_empty),
+                        Modifier.fillMaxWidth().padding(vertical = 32.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    listOf(Triple(R.string.apps_shops, null, shops), Triple(R.string.apps_banks, R.string.apps_banks_note, banks))
+                        .forEach { (title, note, apps) ->
+                            if (apps.isNotEmpty()) {
+                                Column(Modifier.padding(start = 4.dp, top = 4.dp)) {
+                                    Text(stringResource(title), style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                                    note?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                }
+                                Card(Modifier.fillMaxWidth()) {
+                                    apps.forEachIndexed { index, app ->
+                                        if (index > 0) HorizontalDivider(Modifier.padding(start = 80.dp))
+                                        AppRow(app, mode(app.packageName), selecting, app.packageName in selected) {
+                                            if (selecting) {
+                                                selected = if (app.packageName in selected)
+                                                    selected - app.packageName else selected + app.packageName
+                                            } else { editing = setOf(app.packageName) }
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
+                }
             }
         }
     }
