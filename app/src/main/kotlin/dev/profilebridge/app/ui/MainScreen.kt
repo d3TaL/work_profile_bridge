@@ -106,7 +106,7 @@ private fun HomeHero(state: BridgeState, remaining: Int) {
     val ready = remaining == 0
     val tint by animateColorAsState(if (ready) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
         label = "heroTint")
-    AnimatedContent(targetState = ready, label = "heroIcon") { isReady ->
+    if (!LocalShortScreen.current) AnimatedContent(targetState = ready, label = "heroIcon") { isReady ->
         Icon(painterResource(if (isReady) R.drawable.ic_check_circle else destinationIcon(state.destination)),
             contentDescription = null, modifier = Modifier.size(48.dp), tint = tint)
     }
@@ -120,7 +120,8 @@ private fun HomeHero(state: BridgeState, remaining: Int) {
 
 @Composable
 private fun ReceiverHero(state: BridgeState) {
-    Icon(painterResource(if (state.space == Space.SECURE_FOLDER) R.drawable.ic_secure_folder else R.drawable.ic_work),
+    if (!LocalShortScreen.current) Icon(painterResource(
+        if (state.space == Space.SECURE_FOLDER) R.drawable.ic_secure_folder else R.drawable.ic_work),
         contentDescription = null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
     Text(stringResource(R.string.receiver_title), style = MaterialTheme.typography.displaySmall,
         fontWeight = FontWeight.SemiBold)

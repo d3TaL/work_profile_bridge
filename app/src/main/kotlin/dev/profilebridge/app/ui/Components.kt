@@ -62,11 +62,19 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
 import dev.profilebridge.app.R
 import dev.profilebridge.app.platform.ProfileAccess
 import dev.profilebridge.app.platform.ProfileManager
 
 private val CardShape = RoundedCornerShape(20.dp)
+
+/** True on short windows (landscape, split screen): headers stay compact and big icons hide. */
+val LocalShortScreen = staticCompositionLocalOf { false }
 
 /**
  * One-handed layout (as in One UI): the top part of the screen is a large header that is only
@@ -84,7 +92,9 @@ fun ReachableColumn(
 ) {
     val scroll = rememberScrollState()
     BoxWithConstraints(modifier.fillMaxSize()) {
-        val headerHeight = (maxHeight * 0.28f).coerceAtLeast(96.dp)
+        val short = maxHeight < 480.dp
+        val headerHeight = if (short) 0.dp else (maxHeight * 0.28f).coerceAtLeast(96.dp)
+        CompositionLocalProvider(LocalShortScreen provides short) {
         Column(Modifier.fillMaxWidth().verticalScroll(scroll).heightIn(min = maxHeight)
             .padding(horizontal = horizontalPadding), verticalArrangement = Arrangement.SpaceBetween) {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -100,8 +110,9 @@ fun ReachableColumn(
             Column(Modifier.fillMaxWidth().padding(vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
                 content = bottom)
         }
+        }
         if (title != null) {
-            val fadeStart = with(LocalDensity.current) { headerHeight.toPx() * 0.6f }
+            val fadeStart = with(LocalDensity.current) { headerHeight.coerceAtLeast(96.dp).toPx() * 0.6f }
             Box(Modifier.fillMaxWidth().clearAndSetSemantics {}.graphicsLayer {
                 alpha = ((scroll.value - fadeStart) / fadeStart.coerceAtLeast(1f) * 3f).coerceIn(0f, 1f)
             }.background(MaterialTheme.colorScheme.surface)
@@ -121,14 +132,16 @@ fun DestinationSwitch(selected: Destination, samsung: Boolean, choose: (Destinat
         add(Destination.ASK)
     }
     val scheme = MaterialTheme.colorScheme
-    Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // Equal tile heights even when one label wraps to two lines.
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         options.forEach { option ->
             val on = option == selected
             val container by animateColorAsState(if (on) scheme.primaryContainer else scheme.surfaceContainerLow,
                 label = "switch")
             val content by animateColorAsState(if (on) scheme.onPrimaryContainer else scheme.onSurfaceVariant,
                 label = "switchText")
-            Column(Modifier.weight(1f).heightIn(min = 88.dp).clip(CardShape).background(container)
+            Column(Modifier.weight(1f).fillMaxHeight().heightIn(min = 88.dp).clip(CardShape).background(container)
                 .selectable(selected = on, role = Role.RadioButton) { choose(option) }
                 .padding(horizontal = 6.dp, vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

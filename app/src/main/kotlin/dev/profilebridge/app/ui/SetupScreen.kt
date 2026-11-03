@@ -107,7 +107,7 @@ private fun MainStep(step: Int, state: BridgeState, actions: BridgeActions, next
             ChecklistGroup(state, actions)
         }
         else -> ReachableColumn(horizontalPadding = 24.dp, header = {
-            Icon(painterResource(R.drawable.ic_check_circle), contentDescription = null,
+            if (!LocalShortScreen.current) Icon(painterResource(R.drawable.ic_check_circle), contentDescription = null,
                 modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
             Text(stringResource(R.string.setup_done), style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.SemiBold)
