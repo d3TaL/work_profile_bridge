@@ -43,7 +43,7 @@ kotlin { compilerOptions { allWarningsAsErrors.set(true) } }
 
 // Robolectric must not download the Android framework jar at test time. Gradle resolves it,
 // so it is covered by the lockfile and SHA-256 verification metadata, and tests run offline.
-val robolectricRuntime: Configuration by configurations.creating {
+val robolectricRuntime: Configuration = configurations.create("robolectricRuntime") {
     isCanBeConsumed = false
     isTransitive = false
 }
@@ -75,9 +75,8 @@ tasks.withType<Test>().configureEach {
     )
 }
 roborazzi {
-    // Reference images are reviewed and committed; diffs stay in build outputs.
+    // Reference images are reviewed and committed; diffs stay in build/outputs/roborazzi.
     outputDir.set(file("src/test/screenshots"))
-    compare { outputDir.set(file("build/outputs/roborazzi")) }
 }
 dependencies {
     implementation(project(":core"))
@@ -91,6 +90,8 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
+    // Compose test pulls Espresso 3.5.1, which reflects on InputManager.getInstance() that SDK 37 lacks.
+    testImplementation(libs.espresso.core)
     testImplementation(libs.robolectric)
     testImplementation(libs.roborazzi)
     testImplementation(libs.roborazzi.compose)

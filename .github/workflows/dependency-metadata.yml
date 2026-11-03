@@ -35,14 +35,18 @@ jobs:
         shell: bash
         run: |
           set +e
-          bash ./gradlew --no-configuration-cache --continue \
-            --write-verification-metadata sha256 --write-locks \
-            -Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64 \
-            -Porg.gradle.java.installations.auto-download=false \
-            :core:dependencies :app:dependencies \
-            :core:test :app:testDebugUnitTest :app:assembleDebug :app:lintDebug \
+          toolchain="-Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64 -Porg.gradle.java.installations.auto-download=false"
+          # Locks are written only by a successful build, so resolve every configuration first.
+          bash ./gradlew --no-configuration-cache --write-verification-metadata sha256 --write-locks \
+            $toolchain :core:dependencies :app:dependencies > dependency-report.txt
+          locks=$?
+          # Then fetch every artifact the CI tasks use; failing tests must not hide metadata.
+          bash ./gradlew --no-configuration-cache --continue --write-verification-metadata sha256 \
+            $toolchain :core:test :app:testDebugUnitTest :app:assembleDebug :app:lintDebug \
             :app:assembleRelease :app:lintRelease
-          echo "GRADLE_STATUS=$?" >> "$GITHUB_ENV"
+          build=$?
+          echo "GRADLE_STATUS=locks:$locks,build:$build" >> "$GITHUB_ENV"
+          [ "$locks" = 0 ] && [ "$build" = 0 ] && echo "GRADLE_OK=1" >> "$GITHUB_ENV" || true
       - name: Collect metadata patch
         shell: bash
         run: |
@@ -59,7 +63,7 @@ jobs:
           if-no-files-found: error
           retention-days: 3
       - name: Report Gradle result
-        if: env.GRADLE_STATUS != '0'
+        if: env.GRADLE_OK != '1'
         run: |
           echo "Gradle finished with status $GRADLE_STATUS; the patch may be incomplete."
           exit 1

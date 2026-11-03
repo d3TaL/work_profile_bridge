@@ -11,6 +11,7 @@ robolectric = "4.17"
 # Android 17 (SDK 37) image used by Robolectric 4.17, see its DefaultSdkProvider.
 robolectric-android-all = "17-robolectric-15733970-i7"
 roborazzi = "1.77.0"
+espresso = "3.7.0"
 
 [libraries]
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "core" }
@@ -23,6 +24,7 @@ coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", ve
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 junit = { module = "junit:junit", version.ref = "junit" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 robolectric-android-all = { module = "org.robolectric:android-all-instrumented", version.ref = "robolectric-android-all" }
 roborazzi = { module = "io.github.takahirom.roborazzi:roborazzi", version.ref = "roborazzi" }
