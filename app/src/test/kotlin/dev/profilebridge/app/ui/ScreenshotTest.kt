@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.unit.Density
 import androidx.navigationevent.DirectNavigationEventInput
 import androidx.navigationevent.NavigationEvent
@@ -17,7 +16,6 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 /**
@@ -119,31 +117,34 @@ class ScreenshotTest {
     }
 }
 
-/** The predictive back frame: a cancelled gesture must leave the screen in place. */
+/**
+ * Predictive back gesture. The in-flight frame is not a reference image: gesture progress reaches
+ * the screen asynchronously, so its exact frame depends on timing (reviewed manually instead).
+ */
 @RunWith(RobolectricTestRunner::class)
-@GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(qualifiers = "w400dp-h900dp-port-notnight-hdpi")
-class PredictiveBackScreenshotTest {
+class PredictiveBackTest {
     private val compose = createAndroidComposeRule<ComponentActivity>()
 
     @get:Rule
     val rules: RuleChain = RuleChain.outerRule(RegisterComponentActivity()).around(compose)
 
-    @Test
-    fun appsScreenFollowsBackGesture() {
+    private fun gesture(finish: (DirectNavigationEventInput) -> Unit): Int {
         var closed = 0
         compose.setContent { AppsScreen(modes = sampleModes, apply = { _, _ -> }, close = { closed++ }, selectTab = {}) }
-        val input = DirectNavigationEventInput()
         compose.runOnUiThread {
+            val input = DirectNavigationEventInput()
             compose.activity.navigationEventDispatcher.addInput(input)
             input.backStarted(NavigationEvent(swipeEdge = NavigationEvent.EDGE_LEFT))
             input.backProgressed(NavigationEvent(progress = 0.6f, swipeEdge = NavigationEvent.EDGE_LEFT))
+            finish(input)
         }
         compose.waitForIdle()
-        compose.onRoot().captureRoboImage("apps_back_gesture.png")
-
-        compose.runOnUiThread { input.backCancelled() }
-        compose.waitForIdle()
-        assertEquals(0, closed)
+        return closed
     }
+
+    @Test
+    fun cancelledGestureKeepsTheScreen() = assertEquals(0, gesture { it.backCancelled() })
+
+    @Test
+    fun completedGestureLeavesOnce() = assertEquals(1, gesture { it.backCompleted() })
 }
