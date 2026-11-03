@@ -10,7 +10,6 @@ import androidx.compose.ui.unit.Density
 import androidx.navigationevent.DirectNavigationEventInput
 import androidx.navigationevent.NavigationEvent
 import com.github.takahirom.roborazzi.captureRoboImage
-import dev.profilebridge.app.platform.LocalHandler
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -23,8 +22,8 @@ import org.robolectric.annotation.GraphicsMode
 
 /**
  * Screen references. They run only in Roborazzi record/verify/compare mode; a plain unit test
- * run skips the capture. Light/dark for every screen; font 150 %, half of a split screen and
- * landscape for the text-heavy screens.
+ * run skips the capture. Light/dark for the screens; font 150 %, half of a split screen and
+ * landscape where text or layout may break.
  */
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -50,16 +49,36 @@ class ScreenshotTest {
     }
 
     @Test
-    fun homeWithoutLink() = capture("home_empty", themes) { HomeFixture() }
+    fun homeReady() = capture("home_ready", Variant.entries) { MainScreen(0, readyState, RecordingActions()) }
 
     @Test
-    fun homeWithLink() = capture("home_link", Variant.entries) {
-        HomeFixture(url = PUBLIC_LINK, targets = listOf(workCopy, secureFolderCopy),
-            handlers = listOf(LocalHandler("ru.ozon.app.android")))
+    fun homeNeedsSteps() = capture("home_steps", themes) { MainScreen(0, freshState, RecordingActions()) }
+
+    @Test
+    fun homeLinkAsk() = capture("home_link_ask", themes + Variant.FONT150) {
+        MainScreen(0, readyState.copy(destination = Destination.ASK, url = PUBLIC_LINK, linkApp = "Ozon",
+            handlers = listOf(ozonHandler)), RecordingActions())
     }
 
     @Test
-    fun settings() = capture("settings", themes) { HomeFixture(tab = 2, targets = listOf(workCopy, secureFolderCopy)) }
+    fun settingsWorkProfile() = capture("settings_work", themes + Variant.FONT150) {
+        MainScreen(2, freshState, RecordingActions())
+    }
+
+    @Test
+    fun settingsSecureFolder() = capture("settings_secure", themes) {
+        MainScreen(2, readyState.copy(destination = Destination.SECURE_FOLDER), RecordingActions())
+    }
+
+    @Test
+    fun receiverHome() = capture("receiver_home", themes) {
+        MainScreen(0, readyState.copy(space = Space.SECURE_FOLDER, openImmediately = true), RecordingActions())
+    }
+
+    @Test
+    fun receiverSettings() = capture("receiver_settings", themes) {
+        MainScreen(2, readyState.copy(space = Space.WORK_PROFILE, openImmediately = true), RecordingActions())
+    }
 
     @Test
     fun apps() = capture("apps", themes + Variant.FONT150 + Variant.SPLIT) {
@@ -67,10 +86,32 @@ class ScreenshotTest {
     }
 
     @Test
-    fun setupRoutes() = capture("setup_routes", themes) { SetupFixture() }
+    fun setupWhere() = capture("setup_where", themes + Variant.FONT150) {
+        SetupScreen(readyState, RecordingActions(), close = {}, done = {}, tryLink = {})
+    }
 
     @Test
-    fun setupAddCopy() = capture("setup_add_copy", themes + Variant.FONT150) { SetupFixture(initialStep = 3) }
+    fun setupPrepare() = capture("setup_prepare", themes) {
+        SetupScreen(freshState.copy(destination = Destination.ASK), RecordingActions(), close = {}, done = {},
+            tryLink = {}, initialStep = 1)
+    }
+
+    @Test
+    fun setupDone() = capture("setup_done", listOf(Variant.LIGHT)) {
+        SetupScreen(readyState, RecordingActions(), close = {}, done = {}, tryLink = {}, initialStep = 2)
+    }
+
+    @Test
+    fun setupReceiver() = capture("setup_receiver", listOf(Variant.LIGHT)) {
+        SetupScreen(readyState.copy(space = Space.SECURE_FOLDER), RecordingActions(), close = {}, done = {},
+            tryLink = {}, initialStep = 1)
+    }
+
+    @Test
+    fun quickSend() = capture("quick_send", listOf(Variant.SPLIT, Variant.DARK)) {
+        QuickSendScreen(readyState.copy(destination = Destination.ASK, url = PUBLIC_LINK, linkApp = "Ozon"),
+            RecordingActions())
+    }
 
     @Test
     fun transferExpired() = capture("transfer_expired", themes + Variant.FONT150) {

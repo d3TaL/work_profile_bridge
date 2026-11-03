@@ -11,7 +11,7 @@ android {
         minSdk = 30
         targetSdk = 37
         versionCode = 32
-        versionName = "0.5.3-back-insets"
+        versionName = "0.6.0-simple-ux"
     }
     buildFeatures { compose = true; buildConfig = true }
     val releaseStore = providers.environmentVariable("PLB_RELEASE_KEYSTORE_PATH").orNull

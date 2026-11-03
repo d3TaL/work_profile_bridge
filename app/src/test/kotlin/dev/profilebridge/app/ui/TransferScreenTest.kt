@@ -1,7 +1,6 @@
 package dev.profilebridge.app.ui
 
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import dev.profilebridge.app.R
@@ -27,7 +26,8 @@ class TransferScreenTest {
             TransferScreen("Ozon", failed = true, expired = true, retryEnabled = false, retry = {}, close = {})
         }
         compose.onNodeWithText(text(R.string.transfer_expired)).assertExists()
-        compose.onNodeWithText(text(R.string.transfer_retry)).assertIsNotEnabled()
+        // No disabled button: the retry action is simply not offered.
+        compose.onNodeWithText(text(R.string.transfer_retry)).assertDoesNotExist()
     }
 
     @Test

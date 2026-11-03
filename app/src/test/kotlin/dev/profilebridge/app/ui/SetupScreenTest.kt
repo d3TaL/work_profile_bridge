@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import dev.profilebridge.app.R
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -22,42 +23,90 @@ class SetupScreenTest {
     val rules: RuleChain = RuleChain.outerRule(RegisterComponentActivity()).around(compose)
 
     private fun text(id: Int) = compose.activity.getString(id)
-    private fun step(number: Int) = compose.activity.getString(R.string.wizard_step, number, 9)
-    private fun next() = compose.onNodeWithText(text(R.string.setup_continue)).performScrollTo().performClick()
+
+    private class Calls {
+        var closed = 0
+        var done = 0
+        var tried = 0
+    }
+
+    private fun show(state: BridgeState, initialStep: Int = 0): Pair<Calls, () -> RecordingActions> {
+        val calls = Calls()
+        var recorded: RecordingActions? = null
+        compose.setContent {
+            Stateful(state, { update -> RecordingActions(update).also { recorded = it } }) { current, actions ->
+                SetupScreen(current, actions, close = { calls.closed++ }, done = { calls.done++ },
+                    tryLink = { calls.tried++ }, initialStep = initialStep)
+            }
+        }
+        return calls to { checkNotNull(recorded) }
+    }
 
     @Test
-    fun backReturnsToPreviousStepThenLeavesWizard() {
-        var closed = 0
-        compose.setContent { SetupFixture(close = { closed++ }) }
-        next()
-        compose.onNodeWithText(text(R.string.setup_modes_title)).assertExists()
+    fun choosingWhereLinksGoIsTheStepAction() {
+        val (_, actions) = show(freshState)
+        compose.onNodeWithText(text(R.string.setup_where)).assertExists()
+        compose.onNodeWithText(text(R.string.dest_ask)).performScrollTo().performClick()
+
+        assertEquals(listOf("destination:${Destination.ASK}"), actions().calls)
+        compose.onNodeWithText(text(R.string.prepare_title)).assertExists()
+        compose.onNodeWithText(text(R.string.check_secure)).assertExists()
+    }
+
+    @Test
+    fun backReturnsToPreviousStepThenLeavesSetup() {
+        val (calls, _) = show(freshState, initialStep = 1)
+        compose.onNodeWithText(text(R.string.prepare_title)).assertExists()
 
         compose.pressBack()
-        compose.onNodeWithText(text(R.string.setup_routes_title)).assertExists()
-        assertEquals(0, closed)
+        compose.onNodeWithText(text(R.string.setup_where)).assertExists()
+        assertEquals(0, calls.closed)
 
         compose.pressBack()
-        assertEquals(1, closed)
+        assertEquals(1, calls.closed)
     }
 
     @Test
     fun currentStepSurvivesSavedStateRestore() {
         val restoration = StateRestorationTester(compose)
-        restoration.setContent { SetupFixture() }
-        next()
-        compose.onNodeWithText(step(2)).assertExists()
+        restoration.setContent {
+            SetupScreen(freshState, RecordingActions(), close = {}, done = {}, tryLink = {})
+        }
+        compose.onNodeWithText(text(R.string.dest_work)).performScrollTo().performClick()
+        compose.onNodeWithText(text(R.string.prepare_title)).assertExists()
 
         restoration.emulateSavedInstanceStateRestore()
-        compose.onNodeWithText(step(2)).assertExists()
-        compose.onNodeWithText(text(R.string.setup_modes_title)).assertExists()
+        compose.onNodeWithText(text(R.string.prepare_title)).assertExists()
     }
 
     @Test
-    fun lastStepFinishesWizardOnce() {
-        var done = 0
-        compose.setContent { SetupFixture(initialStep = 8, done = { done++ }) }
-        compose.onNodeWithText(step(9)).assertExists()
-        compose.onNodeWithText(text(R.string.wizard_done)).performScrollTo().performClick()
-        assertEquals(1, done)
+    fun lastStepOffersTryAndFinish() {
+        val (calls, _) = show(readyState, initialStep = 2)
+        compose.onNodeWithText(text(R.string.skip)).assertDoesNotExist()
+        compose.onNodeWithText(text(R.string.setup_try)).performScrollTo().performClick()
+        compose.onNodeWithText(text(R.string.finish)).performScrollTo().performClick()
+        assertEquals(1, calls.tried)
+        assertEquals(1, calls.done)
+    }
+
+    @Test
+    fun skipFinishesSetup() {
+        val (calls, _) = show(freshState)
+        compose.onNodeWithText(text(R.string.skip)).performClick()
+        assertEquals(1, calls.done)
+    }
+
+    @Test
+    fun receivingCopyAsksSpaceThenOpening() {
+        val (calls, actions) = show(readyState.copy(space = Space.WORK_PROFILE))
+        compose.onNodeWithText(text(R.string.setup_space)).assertExists()
+        compose.onNodeWithText(text(R.string.dest_work)).performScrollTo().performClick()
+
+        compose.onNodeWithText(text(R.string.setup_open)).assertExists()
+        compose.onNodeWithText(text(R.string.open_now)).performScrollTo().performClick()
+        compose.onNodeWithText(text(R.string.finish)).performScrollTo().performClick()
+
+        assertEquals(listOf("space:${Space.WORK_PROFILE}", "open:true"), actions().calls)
+        assertTrue(calls.done == 1)
     }
 }

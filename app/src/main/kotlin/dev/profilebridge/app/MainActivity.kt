@@ -35,7 +35,19 @@ import dev.profilebridge.app.platform.ProfileRole
 import dev.profilebridge.app.platform.ProfileRoles
 import dev.profilebridge.app.platform.ProfileManager
 import dev.profilebridge.app.platform.ProfileManagers
-import dev.profilebridge.app.ui.BridgeScreen
+import android.content.SharedPreferences
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
+import dev.profilebridge.app.platform.LinkHandling
+import dev.profilebridge.app.platform.LinkSettings
+import dev.profilebridge.app.ui.BridgeActions
+import dev.profilebridge.app.ui.BridgeState
+import dev.profilebridge.app.ui.Destination
+import dev.profilebridge.app.ui.MainScreen
+import dev.profilebridge.app.ui.QuickSendScreen
+import dev.profilebridge.app.ui.Space
 import dev.profilebridge.app.ui.SetupScreen
 import dev.profilebridge.app.ui.TransferScreen
 import dev.profilebridge.app.ui.AppsScreen
@@ -84,6 +96,10 @@ open class MainActivity : ComponentActivity() {
     private var showApps by mutableStateOf(false)
     private var homeTab by mutableIntStateOf(0)
     private var appModes by mutableStateOf<Map<String, AppMode>>(emptyMap())
+    private var destination by mutableStateOf(Destination.WORK_PROFILE)
+    private var space by mutableStateOf(Space.MAIN)
+    private var linkHandling by mutableStateOf<LinkHandling?>(null)
+    private var linksJob: Job? = null
     private var retryLink: SafeLink? = null
     private var retryDeadline = 0L
     private var reportToSave: String? = null
@@ -150,119 +166,42 @@ open class MainActivity : ComponentActivity() {
         shareRoute = prefs.getBoolean("share-route", false)
         compactMode = prefs.getBoolean("compact", false)
         targetSerial = prefs.getLong("target-serial", -1L)
+        destination = loadDestination(prefs)
+        space = loadSpace(prefs)
         showSetup = savedInstanceState?.getBoolean("setup-visible") ?: (intent.action == Intent.ACTION_MAIN &&
-            !prefs.getBoolean("setup-intro-done", false))
+            !prefs.getBoolean(SETUP_DONE, false))
         debugEnabled = getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("debug", false)
         if (savedInstanceState == null) receive(intent)
         else setIntent(Intent(Intent.ACTION_MAIN).setClass(this, MainActivity::class.java))
         transit = compactEntry && (pendingForward || pendingStoreOpen)
         setContent {
-            val transfer = transferApp
-            if (showApps) {
-                AppsScreen(appModes, apply = { packages, mode ->
-                    AppRules.set(this, packages, mode)
-                    appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
-                }, close = { selectHomeTab(0) }, selectTab = { selectHomeTab(it) })
-            } else if (transfer != null) {
-                TransferScreen(transfer, transferFailed, expired = message == R.string.transfer_expired,
-                    retryEnabled = retryLink != null, retry = {
-                    val selected = retryLink
-                    if (selected != null && android.os.SystemClock.elapsedRealtime() < retryDeadline) {
-                        url = selected.original
-                        shareLink()
-                    } else {
-                        retryLink = null
-                        transferFailed = true
-                        message = R.string.transfer_expired
-                    }
-                }) {
-                    transferApp = null
-                    retryLink = null
-                    if (compactEntry) finish()
+            val screen = when {
+                showApps -> Screen.APPS
+                transferApp != null -> Screen.TRANSFER
+                showSetup -> Screen.SETUP
+                transit -> Screen.NONE
+                compactEntry && space == Space.MAIN && url.isNotBlank() -> Screen.QUICK
+                else -> Screen.MAIN
+            }
+            val state = uiState()
+            // Keep the transfer label while its screen fades out.
+            val lastTransfer = remember { mutableStateOf("") }
+            SideEffect { transferApp?.let { lastTransfer.value = it } }
+            Crossfade(targetState = screen, animationSpec = tween(200), label = "screen") { current ->
+                when (current) {
+                    Screen.APPS -> AppsScreen(appModes, apply = { packages, mode ->
+                        AppRules.set(this, packages, mode)
+                        appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
+                    }, close = { selectHomeTab(0) }, selectTab = { selectHomeTab(it) })
+                    Screen.TRANSFER -> TransferScreen(transferApp ?: lastTransfer.value, transferFailed,
+                        expired = message == R.string.transfer_expired, retryEnabled = retryLink != null,
+                        retry = ::retryShare, close = ::closeTransfer)
+                    Screen.SETUP -> SetupScreen(state, actions, close = { showSetup = false }, done = ::finishSetup,
+                        tryLink = ::tryLink)
+                    Screen.QUICK -> QuickSendScreen(state, actions)
+                    Screen.MAIN -> MainScreen(homeTab, state, actions)
+                    Screen.NONE -> Unit
                 }
-            } else if (showSetup) {
-                SetupScreen(role = roleLabel(), targets = targets,
-                    managers = profileManagers,
-                    openManager = { manager -> lifecycleScope.launch {
-                        if (!ProfileManagers.open(this@MainActivity, manager)) message = R.string.setup_manager_open_failed
-                    } },
-                    main = role == ProfileRole.MAIN, managed = role == ProfileRole.MANAGED,
-                    selectedTarget = targets.firstOrNull { serial(it) == targetSerial }, shareRoute = shareRoute,
-                    applyPreset = ::applyPreset,
-                    samsung = Build.MANUFACTURER.equals("samsung", true), access = profileAccess,
-                    refresh = ::refresh, requestAccess = ::requestAccess,
-                    openLinkSettings = ::openLinkSettings, message = message,
-                    prepareTest = { showSetup = false; edit("https://www.ozon.ru/"); message = R.string.wizard_test_ready },
-                    close = { showSetup = false },
-                    done = {
-                        prefs.edit().putBoolean("setup-intro-done", true).apply()
-                        showSetup = false
-                    })
-            } else if (!transit) {
-            BridgeScreen(
-                tab = homeTab, selectTab = ::selectHomeTab,
-                openApps = {
-                    appModes = AppRules.apps.associate { it.packageName to AppRules.mode(this, it.packageName) }
-                    showApps = true
-                },
-                openSetup = { refresh(); showSetup = true },
-                targets = targets, message = message,
-                device = getString(R.string.device, Build.VERSION.RELEASE, Build.VERSION.SDK_INT, applicationInfo.targetSdkVersion),
-                profileRole = roleLabel(),
-                url = url, linkError = linkError, handlers = handlers,
-                refresh = ::refresh, changeUrl = ::edit, inspect = ::inspect, clear = { edit("") },
-                openCopy = { target -> message = if (ProfileDiagnostics.open(this, target)) R.string.open_ok else R.string.open_failed },
-                openHandler = ::openHandler,
-                shareReport = ::shareReport,
-                saveReport = { report ->
-                    reportToSave = report
-                    try { saveReportDocument.launch("profile-bridge-report.txt") }
-                    catch (_: ActivityNotFoundException) { reportToSave = null; message = R.string.open_failed }
-                },
-                profileAccess = profileAccess,
-                requestProfileAccess = ::requestAccess,
-                sendToCopy = ::sendToCopy,
-                autoOpenStores = autoOpenStores,
-                autoOpenShares = autoOpenShares,
-                setAutoOpenShares = { enabled ->
-                    autoOpenShares = enabled
-                    prefs.edit().putBoolean("auto-open-share", enabled).apply()
-                },
-                setAutoOpenStores = { enabled ->
-                    autoOpenStores = enabled
-                    getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("auto-open", enabled)
-                        .putBoolean("open-manual", true).apply()
-                },
-                debugEnabled = debugEnabled,
-                setDebugEnabled = { enabled ->
-                    debugEnabled = enabled; debugEvents.clear(); debugReport = null
-                    getSharedPreferences("store-routing", MODE_PRIVATE).edit().putBoolean("debug", enabled).apply()
-                },
-                debugReport = debugReport,
-                previewDebug = { debugReport = "Profile Bridge ${BuildConfig.VERSION_NAME}\n" + debugEvents.joinToString("\n") },
-                dismissDebug = { debugReport = null },
-                autoForward = autoForward,
-                shareRoute = shareRoute,
-                setShareRoute = { enabled ->
-                    shareRoute = enabled
-                    prefs.edit().putBoolean("share-route", enabled).apply()
-                },
-                shareLink = ::shareLink,
-                setAutoForward = { enabled ->
-                    autoForward = enabled
-                    prefs.edit().putBoolean("auto-forward", enabled).putBoolean("forward-manual", true).apply()
-                },
-                compactMode = compactMode,
-                setCompactMode = { enabled ->
-                    compactMode = enabled
-                    prefs.edit().putBoolean("compact", enabled).apply()
-                },
-                selectedTarget = targets.firstOrNull { serial(it) == targetSerial },
-                selectTarget = { target ->
-                    targetSerial = serial(target)
-                    prefs.edit().putLong("target-serial", targetSerial).apply()
-                },
-            )
             }
         }
     }
@@ -299,38 +238,155 @@ open class MainActivity : ComponentActivity() {
     private fun storeAutoOpenEnabled() =
         getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("auto-open", false)
 
-    private fun roleLabel() = if (getSharedPreferences("store-routing", MODE_PRIVATE).getBoolean("knox-label", false))
-        getString(R.string.role_knox_manual) else getString(when (role) {
-        ProfileRole.MAIN -> R.string.role_main
-        ProfileRole.MANAGED -> R.string.role_managed
-        ProfileRole.OTHER -> R.string.role_other
-        ProfileRole.UNKNOWN -> R.string.role_unknown
-    })
+    private fun prefs(): SharedPreferences = getSharedPreferences("store-routing", MODE_PRIVATE)
 
-    private fun applyPreset(preset: Int, target: UserHandle?) {
-        val prefs = getSharedPreferences("store-routing", MODE_PRIVATE)
-        if (preset == 1 && (target == null || target !in ProfileDiagnostics.targets(this))) {
-            message = R.string.profile_target_unavailable
-            refresh()
-            return
+    private fun loadDestination(prefs: SharedPreferences) = when (prefs.getString("destination", null)) {
+        Destination.WORK_PROFILE.key -> Destination.WORK_PROFILE
+        Destination.SECURE_FOLDER.key -> Destination.SECURE_FOLDER
+        Destination.ASK.key -> Destination.ASK
+        // Earlier versions stored only the switches: manual mode becomes "ask".
+        else -> when {
+            !autoForward -> Destination.ASK
+            shareRoute -> Destination.SECURE_FOLDER
+            else -> Destination.WORK_PROFILE
         }
-        if (preset !in 1..5) return
-        // Presets are applied only by an explicit button, never by incoming text.
-        autoForward = preset == 1 || preset == 2
-        shareRoute = preset == 2
-        autoOpenStores = preset == 3
-        autoOpenShares = preset == 4
-        val edit = prefs.edit().putBoolean("auto-forward", autoForward)
-            .putBoolean("share-route", shareRoute).putBoolean("auto-open", autoOpenStores)
-            .putBoolean("auto-open-share", autoOpenShares)
-            .putBoolean("forward-manual", true).putBoolean("open-manual", true)
-            .putBoolean("knox-label", preset == 4)
-        if (preset == 1 && target != null) {
-            targetSerial = serial(target)
-            edit.putLong("target-serial", targetSerial)
+    }
+
+    private fun loadSpace(prefs: SharedPreferences) = when {
+        role == ProfileRole.MAIN -> Space.MAIN
+        prefs.getString("space", null) == SPACE_WORK -> Space.WORK_PROFILE
+        prefs.getString("space", null) == SPACE_SECURE -> Space.SECURE_FOLDER
+        prefs.getBoolean("knox-label", false) -> Space.SECURE_FOLDER
+        role == ProfileRole.MANAGED -> Space.WORK_PROFILE
+        else -> Space.SECURE_FOLDER
+    }
+
+    /** Changed only by an explicit tap, never by incoming text. */
+    private fun applyDestination(value: Destination) {
+        destination = value
+        autoForward = value != Destination.ASK
+        shareRoute = value == Destination.SECURE_FOLDER
+        prefs().edit().putString("destination", value.key).putBoolean("auto-forward", autoForward)
+            .putBoolean("share-route", shareRoute).putBoolean("forward-manual", true).apply()
+    }
+
+    private fun applySpace(value: Space) {
+        if (role == ProfileRole.MAIN || value == Space.MAIN) return
+        space = value
+        val edit = prefs().edit().putString("space", if (value == Space.SECURE_FOLDER) SPACE_SECURE else SPACE_WORK)
+        // Unauthenticated public shares must not stay auto-opened behind a work profile label.
+        if (value == Space.WORK_PROFILE && autoOpenShares) {
+            autoOpenShares = false
+            edit.putBoolean("auto-open-share", false)
         }
         edit.apply()
-        message = R.string.wizard_preset_saved
+    }
+
+    /** Secure Folder: the UI has shown the separate consent before enabling. */
+    private fun applyOpenImmediately(enabled: Boolean) {
+        val edit = prefs().edit()
+        if (space == Space.SECURE_FOLDER) {
+            autoOpenShares = enabled
+            edit.putBoolean("auto-open-share", enabled)
+        } else {
+            autoOpenStores = enabled
+            edit.putBoolean("auto-open", enabled).putBoolean("open-manual", true)
+        }
+        edit.apply()
+    }
+
+    private fun finishSetup() {
+        prefs().edit().putBoolean(SETUP_DONE, true).apply()
+        showSetup = false
+    }
+
+    private fun tryLink() {
+        finishSetup()
+        selectHomeTab(0)
+        edit(TEST_LINK)
+        message = R.string.try_ready
+    }
+
+    private fun retryShare() {
+        val selected = retryLink
+        if (selected != null && android.os.SystemClock.elapsedRealtime() < retryDeadline) {
+            url = selected.original
+            shareLink()
+        } else {
+            retryLink = null
+            transferFailed = true
+            message = R.string.transfer_expired
+        }
+    }
+
+    private fun closeTransfer() {
+        transferApp = null
+        retryLink = null
+        if (compactEntry) finish()
+    }
+
+    private fun linkApp(value: String): String? {
+        val parsed = (SafeLink.parseRouting(value) as? LinkParseResult.Accepted)?.link ?: return null
+        val pkg = StoreLinks.packageFor(parsed) ?: return null
+        return AppRules.apps.firstOrNull { it.packageName == pkg }?.label
+    }
+
+    private fun uiState() = BridgeState(
+        space = space, destination = destination, copies = targets,
+        chosenCopy = targets.firstOrNull { serial(it) == targetSerial }, access = profileAccess,
+        managers = profileManagers, links = linkHandling,
+        openImmediately = if (space == Space.SECURE_FOLDER) autoOpenShares else autoOpenStores,
+        compactWindow = compactMode, diagnostics = debugEnabled, report = debugReport,
+        samsung = Build.MANUFACTURER.equals("samsung", true), url = url, handlers = handlers,
+        message = message, linkMessage = linkError, linkApp = linkApp(url), version = BuildConfig.VERSION_NAME,
+    )
+
+    private val actions = object : BridgeActions {
+        override fun selectTab(tab: Int) = selectHomeTab(tab)
+        override fun openSetup() { refresh(); showSetup = true }
+        override fun setDestination(destination: Destination) = applyDestination(destination)
+        override fun selectCopy(copy: UserHandle) {
+            targetSerial = serial(copy)
+            prefs().edit().putLong("target-serial", targetSerial).apply()
+        }
+        override fun requestAccess() = this@MainActivity.requestAccess()
+        override fun openManager(manager: ProfileManager) {
+            lifecycleScope.launch {
+                if (!ProfileManagers.open(this@MainActivity, manager)) message = R.string.setup_manager_open_failed
+            }
+        }
+        override fun openLinkSettings() = this@MainActivity.openLinkSettings()
+        override fun setSpace(space: Space) = applySpace(space)
+        override fun setOpenImmediately(enabled: Boolean) = applyOpenImmediately(enabled)
+        override fun setCompactWindow(enabled: Boolean) {
+            compactMode = enabled
+            prefs().edit().putBoolean("compact", enabled).apply()
+        }
+        override fun setDiagnostics(enabled: Boolean) {
+            debugEnabled = enabled; debugEvents.clear(); debugReport = null
+            prefs().edit().putBoolean("debug", enabled).apply()
+        }
+        override fun previewReport() {
+            debugReport = "Profile Bridge ${BuildConfig.VERSION_NAME}\n" + getString(R.string.device,
+                Build.VERSION.RELEASE, Build.VERSION.SDK_INT, applicationInfo.targetSdkVersion) + "\n" +
+                debugEvents.joinToString("\n")
+        }
+        override fun dismissReport() { debugReport = null }
+        override fun saveReport(report: String) {
+            reportToSave = report
+            try { saveReportDocument.launch("profile-bridge-report.txt") }
+            catch (_: ActivityNotFoundException) { reportToSave = null; message = R.string.open_failed }
+        }
+        override fun shareReport(report: String) = this@MainActivity.shareReport(report)
+        override fun changeUrl(value: String) = edit(value)
+        override fun findHandlers() = inspect()
+        override fun openHandler(handler: LocalHandler) = this@MainActivity.openHandler(handler)
+        override fun sendToCopy(copy: UserHandle) = this@MainActivity.sendToCopy(copy)
+        override fun sendToSecureFolder() = shareLink()
+        override fun closeQuickSend() {
+            edit("")
+            if (compactEntry) finish()
+        }
     }
 
     private fun openLinkSettings() {
@@ -543,6 +599,8 @@ open class MainActivity : ComponentActivity() {
         managersJob = lifecycleScope.launch {
             profileManagers = ProfileManagers.installed(this@MainActivity)
         }
+        linksJob?.cancel()
+        linksJob = lifecycleScope.launch { linkHandling = LinkSettings.read(this@MainActivity) }
     }
     private fun selectHomeTab(tab: Int) {
         homeTab = tab
@@ -598,6 +656,20 @@ open class MainActivity : ComponentActivity() {
                 allowed(selected, false) && link === selected && selected.original == url && handler in handlers
             }
             if (link === selected) { edit(""); linkError = if (ok) R.string.open_ok else R.string.open_failed }
+        }
+    }
+
+    private enum class Screen { MAIN, APPS, SETUP, TRANSFER, QUICK, NONE }
+
+    private companion object {
+        const val SETUP_DONE = "setup-v2-done"
+        const val SPACE_WORK = "work"
+        const val SPACE_SECURE = "secure-folder"
+        const val TEST_LINK = "https://www.ozon.ru/"
+        val Destination.key: String get() = when (this) {
+            Destination.WORK_PROFILE -> "work"
+            Destination.SECURE_FOLDER -> "secure-folder"
+            Destination.ASK -> "ask"
         }
     }
 }
