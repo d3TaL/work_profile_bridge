@@ -1,5 +1,16 @@
 # Проверки восстановленной версии
 
+## 0.6.2-app-icons — 2026-11-03
+
+- Иконки RuStore для AliExpress, Avito, Яндекс Карт и Яндекс Диска (192×192 WebP,
+  источник и обработка — docs/APP_ICONS.md). Логика ссылок не менялась.
+- APK commit `e32117f`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/41702604528 SUCCESS.
+- 87 тестов, 0 failures/errors; Roborazzi verify 35/35; lint Debug/Release 0 issues.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.6.2-app-icons-e32117f-release.apk`,
+  SHA-256 `12428c07210a5958134d13c82c82335c13d1756ef77b326bac364cc1aaa2b480`, SHA256SUMS OK.
+  Signer `11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7`, versionCode 34.
+- Установку агент не выполнял; на устройстве не проверено.
+
 ## 0.6.1-more-apps — 2026-11-03
 
 - Новые приложения: AliExpress (ru.aliexpress.buyer), Avito, Яндекс Карты,
