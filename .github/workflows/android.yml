@@ -3,6 +3,12 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      screenshots:
+        description: 'verify: compare with committed references; record: write new references as an artifact'
+        type: choice
+        options: [verify, record]
+        default: verify
 permissions:
   contents: read
 concurrency:
@@ -19,7 +25,10 @@ jobs:
       - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
         with:
           distribution: temurin
-          java-version: '17'
+          # 21 runs Robolectric (SDK 37 needs it); 17, listed last, stays JAVA_HOME for the build.
+          java-version: |
+            21
+            17
       - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
@@ -44,7 +53,19 @@ jobs:
       - name: Test, lint and build
         env:
           PLB_RELEASE_PASSWORD: ${{ github.repository == 'd3TaL/work_profile_bridge' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && secrets.PLB_RELEASE_PASSWORD || '' }}
-        run: bash ./gradlew :core:test :app:assembleDebug :app:lintDebug :app:assembleRelease :app:lintRelease --dependency-verification strict
+          SCREENSHOT_MODE: ${{ inputs.screenshots || 'verify' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          case "$SCREENSHOT_MODE" in
+            verify) screenshots=:app:verifyRoborazziDebug ;;
+            record) screenshots=:app:recordRoborazziDebug ;;
+            *) echo "Unknown screenshot mode" >&2; exit 1 ;;
+          esac
+          bash ./gradlew :core:test "$screenshots" :app:assembleDebug :app:lintDebug \
+            :app:assembleRelease :app:lintRelease --dependency-verification strict \
+            -Porg.gradle.java.installations.fromEnv=JAVA_HOME_21_X64 \
+            -Porg.gradle.java.installations.auto-download=false
       - name: Verify persistent release signature
         if: github.repository == 'd3TaL/work_profile_bridge' && github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         shell: bash
@@ -91,6 +112,26 @@ jobs:
           path: |
             core/build/reports/tests/
             core/build/test-results/test/
+            app/build/reports/tests/
+            app/build/test-results/
             app/build/reports/lint-results-*
           if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload screenshot differences
+        if: ${{ failure() && (inputs.screenshots || 'verify') == 'verify' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: profile-bridge-screenshot-diff-${{ github.run_number }}
+          path: |
+            app/build/outputs/roborazzi/
+            app/build/reports/roborazzi/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload recorded screenshot references
+        if: ${{ always() && inputs.screenshots == 'record' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: profile-bridge-screenshots-${{ github.run_number }}
+          path: app/src/test/screenshots/
+          if-no-files-found: error
           retention-days: 7
