@@ -1,5 +1,19 @@
 # Проверки восстановленной версии
 
+## 0.6.1-more-apps — 2026-11-03
+
+- Новые приложения: AliExpress (ru.aliexpress.buyer), Avito, Яндекс Карты,
+  Яндекс Диск, HTTPS-хосты Альфа-Банка. Источник — скриншоты владельца, пакеты
+  сверены с RuStore/Google Play; список хостов в docs/DOMAIN_REGISTRY.md.
+- APK commit `394c4fd`; CI https://github.com/d3TaL/work_profile_bridge/actions/runs/41699170790 SUCCESS.
+- 87 тестов, 0 failures/errors; Roborazzi verify 35/35; lint Debug/Release 0 issues.
+- APK `/storage/emulated/0/Download/artifacts/profile-bridge-0.6.1-more-apps-394c4fd-release.apk`,
+  SHA-256 `79f56c5e0fd5c337c213c844fcb59b6e3ea30315a1cd7bb3d2ec91c64d4a411a`, SHA256SUMS OK.
+  Signer `11a778c8292ce4404420938c6aaaf4100af042441071a431c1597a5ebfe8fca7`, versionCode 33.
+- Сообщения двух коммитов ветки more-apps исправлены до слияния (дерево не менялось).
+- Не проверено на устройстве: ссылки новых приложений, отметка доменов. Установку
+  агент не выполнял.
+
 ## 0.6.0-simple-ux — 2026-11-03
 
 - Интерфейс перекроен по решению владельца: выбор «Куда» (рабочий профиль /
